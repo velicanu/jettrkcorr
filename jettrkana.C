@@ -46,21 +46,21 @@ TH1D * hjtrkdeta;
 TH1D * hjtrkdphi;
 
 HiForest *c;
-TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23);
-TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23);
+TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
+TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
 
 int GetNTotTrig();
 
-void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/mergedv1_sortedforest/mergesortv1_0.root", int trackquality = 0)
+void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/mergedv1_sortedforest/mergesortv1_0.root", int trackquality = 0, string whichjet = "")
 {
   mytrackquality = trackquality;
   cout<<"initializing hiforest and building centrality index"<<endl;
   cout<<"running on: "<<infname<<endl;
   // c = new HiForest(infname,"forest",cPbPb);
-  c = new HiForest(infname,"forest",cPPb);
-  c->LoadNoTrees();
-  c->hasTrackTree = true;
-  c->hasEvtTree = true;
+  c = new HiForest(infname,"forest",cPPb,0,whichjet);
+  // c->LoadNoTrees();
+  // c->hasTrackTree = true;
+  // c->hasEvtTree = true;
 }
 
 bool skipevent(double vzrange, int runboundary)
@@ -71,17 +71,18 @@ bool skipevent(double vzrange, int runboundary)
   return doskip;
 }
 
-TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut)
+TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
+  cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  doptweight=0;
   TH2D::SetDefaultSumw2(true);
-  c->LoadNoTrees();
-  c->hasEvtTree = true;
-  c->hasHltTree = true;
-  c->hasTrackTree = true;
-  c->hasAkPu3JetTree = true;
-  c->hasSkimTree = true;
+  // c->LoadNoTrees();
+  // c->hasEvtTree = true;
+  // c->hasHltTree = true;
+  // c->hasTrackTree = true;
+  // c->hasAkPu3JetTree = true;
+  // c->hasSkimTree = true;
   
   hjeteta    = new TH1D(Form("hjet%d_eta_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",80,-4,4);
   hjetphi    = new TH1D(Form("hjet%d_phi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#phi",80,-TMath::Pi(),TMath::Pi());
@@ -103,11 +104,11 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
   cout<<"before first exit"<<endl;
   if(jetindex==0) //leading jet
   {
-    hJetTrackSignal = new TH2D(Form("signal_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,75,-pi,2*pi);
+    hJetTrackSignal = new TH2D(Form("signal_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,38,-pi,2*pi);
   }
   else if(jetindex==1) //subleading jet
   {
-    hJetTrackSignal = new TH2D(Form("signal_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,75,-pi,2*pi);
+    hJetTrackSignal = new TH2D(Form("signal_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,38,-pi,2*pi);
   }
   else //leading jet
   {
@@ -139,36 +140,36 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     }
     // cout<<"event selected"<<endl;
     if( fabs(c->evt.vz) > vzrange ) continue;
-    // if( c->akPu3PF.nref < 2 )         continue;
-    double dijetdphi = fabs(c->akPu3PF.jtphi[0] - c->akPu3PF.jtphi[1]);
+    // if( c->myjet.nref < 2 )         continue;
+    double dijetdphi = fabs(c->myjet.jtphi[0] - c->myjet.jtphi[1]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
     // cout<< dijetdphi << " vs " << dijetdphicut << endl;
     if( dijetdphi < dijetdphicut ) continue;
-    // cout<<"dphicut "<<c->akPu3PF.nref<<endl;
+    // cout<<"dphicut "<<c->myjet.nref<<endl;
     // int jetindex = -1;
     // while(true)
     // {
     // cout<<"here"<<endl;
     // jetindex++;
-    hjeteta->Fill(c->akPu3PF.jteta[jetindex]);
-    hjetphi->Fill(c->akPu3PF.jtphi[jetindex]);
+    hjeteta->Fill(c->myjet.jteta[jetindex]);
+    hjetphi->Fill(c->myjet.jtphi[jetindex]);
     hjetdphi->Fill(dijetdphi);
-    hjetpt->Fill(c->akPu3PF.jtpt[jetindex]);
+    hjetpt->Fill(c->myjet.jtpt[jetindex]);
     
-    if( c->akPu3PF.nref < 2 ) continue;
-    if( c->akPu3PF.jtpt[0] > leadingjetpthigh ) continue;
-    if( c->akPu3PF.jtpt[0] < leadingjetptlow ) continue;
-    if( c->akPu3PF.jtpt[1] > subleadingjetpthigh ) continue;
-    if( c->akPu3PF.jtpt[1] < subleadingjetptlow ) continue;
+    if( c->myjet.nref < 2 ) continue;
+    if( c->myjet.jtpt[0] > leadingjetpthigh ) continue;
+    if( c->myjet.jtpt[0] < leadingjetptlow ) continue;
+    if( c->myjet.jtpt[1] > subleadingjetpthigh ) continue;
+    if( c->myjet.jtpt[1] < subleadingjetptlow ) continue;
     
-    if( fabs(c->akPu3PF.jteta[0]) > jetamax || fabs(c->akPu3PF.jteta[0]) < jetamin ) continue;
-    if( fabs(c->akPu3PF.jteta[1]) > jetamax || fabs(c->akPu3PF.jteta[1]) < jetamin ) continue;
-    if ((c->akPu3PF.trackMax[0]/c->akPu3PF.jtpt[0])<0.01) continue;
-    if ((c->akPu3PF.trackMax[1]/c->akPu3PF.jtpt[1])<0.01) continue;
+    if( fabs(c->myjet.jteta[0]) > jetamax || fabs(c->myjet.jteta[0]) < jetamin ) continue;
+    if( fabs(c->myjet.jteta[1]) > jetamax || fabs(c->myjet.jteta[1]) < jetamin ) continue;
+    if ((c->myjet.trackMax[0]/c->myjet.jtpt[0])<0.01) continue;
+    if ((c->myjet.trackMax[1]/c->myjet.jtpt[1])<0.01) continue;
     // if(jentry%1000==0) { cout<<"here"<<endl; break;}
     
-    double jeteta = c->akPu3PF.jteta[jetindex];
-    double jetphi = c->akPu3PF.jtphi[jetindex];
+    double jeteta = c->myjet.jteta[jetindex];
+    double jetphi = c->myjet.jtphi[jetindex];
     // cout<<jeteta<<endl;
     int ntrig = 1 , nass = 0;
     
@@ -207,6 +208,7 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
         // cout<<mytrackquality<<endl; //mytrackquality==0&&
         if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
         {
+          if(c->track.trkPt[i]>ptasshigh || c->track.trkPt[i]<ptasslow) continue;
           // cout<<asstrkIndex[k]<<" : "<<asstrkEta[asstrkIndex[k]]<<endl;
           double deta = fabs(jeteta-c->track.trkEta[j]);
           double dphi = fabs(jetphi-c->track.trkPhi[j]);
@@ -243,17 +245,17 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
 }
 
 
-TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut)
+TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  doptweight=0;
   TH2D::SetDefaultSumw2(true);
-  c->LoadNoTrees();
-  c->hasEvtTree = true;
-  c->hasHltTree = true;
-  c->hasTrackTree = true;
-  c->hasAkPu3JetTree = true;
-  c->hasSkimTree = true;
+  // c->LoadNoTrees();
+  // c->hasEvtTree = true;
+  // c->hasHltTree = true;
+  // c->hasTrackTree = true;
+  // c->hasAkPu3JetTree = true;
+  // c->hasSkimTree = true;
   
 
   // Long64_t nentries = c->GetEntries();
@@ -262,11 +264,11 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
   cout<<"before first exit"<<endl;
   if(jetindex==0) //leading jet
   {
-    hJetTrackBackground = new TH2D(Form("background_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,75,-pi,2*pi);
+    hJetTrackBackground = new TH2D(Form("background_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,38,-pi,2*pi);
   }
   else if(jetindex==1) //subleading jet
   {
-    hJetTrackBackground = new TH2D(Form("background_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,75,-pi,2*pi);
+    hJetTrackBackground = new TH2D(Form("background_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,38,-pi,2*pi);
   }
   else //leading jet
   {
@@ -298,31 +300,31 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
       if(!select) continue; 
     }
     if( fabs(c->evt.vz) > vzrange ) continue;
-    // if( c->akPu3PF.nref < 2 )         continue;
-    double dijetdphi = fabs(c->akPu3PF.jtphi[0] - c->akPu3PF.jtphi[1]);
+    // if( c->myjet.nref < 2 )         continue;
+    double dijetdphi = fabs(c->myjet.jtphi[0] - c->myjet.jtphi[1]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
     if( dijetdphi < dijetdphicut ) continue;
     // while(true)
     // {
     // jetindex++;
-    if( c->akPu3PF.nref < 2 ) continue;
-    if( c->akPu3PF.jtpt[0] > leadingjetpthigh ) continue;
-    if( c->akPu3PF.jtpt[0] < leadingjetptlow ) continue;
-    if( c->akPu3PF.jtpt[1] > subleadingjetpthigh ) continue;
-    if( c->akPu3PF.jtpt[1] < subleadingjetptlow ) continue;
+    if( c->myjet.nref < 2 ) continue;
+    if( c->myjet.jtpt[0] > leadingjetpthigh ) continue;
+    if( c->myjet.jtpt[0] < leadingjetptlow ) continue;
+    if( c->myjet.jtpt[1] > subleadingjetpthigh ) continue;
+    if( c->myjet.jtpt[1] < subleadingjetptlow ) continue;
     
-    if( fabs(c->akPu3PF.jteta[0]) > jetamax || fabs(c->akPu3PF.jteta[0]) < jetamin ) continue;
-    if( fabs(c->akPu3PF.jteta[1]) > jetamax || fabs(c->akPu3PF.jteta[1]) < jetamin ) continue;
-    if ((c->akPu3PF.trackMax[0]/c->akPu3PF.jtpt[0])<0.01) continue;
-    if ((c->akPu3PF.trackMax[1]/c->akPu3PF.jtpt[1])<0.01) continue;
+    if( fabs(c->myjet.jteta[0]) > jetamax || fabs(c->myjet.jteta[0]) < jetamin ) continue;
+    if( fabs(c->myjet.jteta[1]) > jetamax || fabs(c->myjet.jteta[1]) < jetamin ) continue;
+    if ((c->myjet.trackMax[0]/c->myjet.jtpt[0])<0.01) continue;
+    if ((c->myjet.trackMax[1]/c->myjet.jtpt[1])<0.01) continue;
     // cout<<"hhere"<<endl;
     // cout<<"ihere"<<endl;
-    // cout<<"ghere "<<fabs(c->akPu3PF.jteta[1])<<" > "<<jetamax<<" ... "<<fabs(c->akPu3PF.jteta[1])<<" < "<<jetamin<<endl;
+    // cout<<"ghere "<<fabs(c->myjet.jteta[1])<<" > "<<jetamax<<" ... "<<fabs(c->myjet.jteta[1])<<" < "<<jetamin<<endl;
     // cout<<"jhere"<<endl;
     // if(jentry%1000==0) { cout<<"here"<<endl; break;}
     
-    double jeteta = c->akPu3PF.jteta[jetindex];
-    double jetphi = c->akPu3PF.jtphi[jetindex];
+    double jeteta = c->myjet.jteta[jetindex];
+    double jetphi = c->myjet.jtphi[jetindex];
     // cout<<jeteta<<endl;
     int ntrig = 1;
     int mixentry = jentry;
@@ -345,6 +347,7 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
           // cout<<"here front"<<endl;
           if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
           {
+            if(c->track.trkPt[j]>ptasshigh || c->track.trkPt[j]<ptasslow) continue;
             // cout<<"here back"<<endl;
             // cout<<asstrkIndex[k]<<" : "<<asstrkEta[asstrkIndex[k]]<<endl;
             double deta = fabs(jeteta-c->track.trkEta[j]);
