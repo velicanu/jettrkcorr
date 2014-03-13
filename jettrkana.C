@@ -133,9 +133,9 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     // cout<<"selectEvent"<<endl;
     if(mccommand==0)
     {
-      bool select = (c->skim.pHBHENoiseFilter || c->mc) && c->skim.pcollisionEventSelection;
+      // bool select = (c->skim.pHBHENoiseFilter || c->mc) && c->skim.pcollisionEventSelection;
       
-      if(!select) continue; 
+      // if(!select) continue; 
       // if(!c->hlt.HLT_HIJet80_v1) continue; 
     }
     // cout<<"event selected"<<endl;
@@ -202,14 +202,14 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     {
       ntottrig += 1;
 
-      // cout<<nass<<endl;
+      // cout<<ntrig<<" here"<<endl;
       for(int j = 0 ; j < c->track.nTrk ; ++j)
       {
         // cout<<mytrackquality<<endl; //mytrackquality==0&&
         if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
         {
           if(c->track.trkPt[i]>ptasshigh || c->track.trkPt[i]<ptasslow) continue;
-          // cout<<asstrkIndex[k]<<" : "<<asstrkEta[asstrkIndex[k]]<<endl;
+          // cout<<j<<endl;
           double deta = fabs(jeteta-c->track.trkEta[j]);
           double dphi = fabs(jetphi-c->track.trkPhi[j]);
           // double ptw = asstrkPt[k];
@@ -239,6 +239,7 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
 
     // if(jentry>100000) break;
   }
+  cout<<ntottrig<<endl;
   // if( ntottrig != 0 ) hJetTrackSignal->Scale(1/ntottrig);
   c->ResetBooleans();
   return hJetTrackSignal;
@@ -295,9 +296,9 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
     {
       // if(!c->selectEvent()) continue; 
       // if(!c->hlt.HLT_HIJet80_v1) continue; 
-      bool select = (c->skim.pHBHENoiseFilter || c->mc) && c->skim.pcollisionEventSelection;
+      // bool select = (c->skim.pHBHENoiseFilter || c->mc) && c->skim.pcollisionEventSelection;
 
-      if(!select) continue; 
+      // if(!select) continue; 
     }
     if( fabs(c->evt.vz) > vzrange ) continue;
     // if( c->myjet.nref < 2 )         continue;
