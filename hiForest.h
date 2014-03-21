@@ -26,6 +26,7 @@
 #include <TString.h>
 #include <TF1.h>
 #include <TCut.h>
+#include "factorizedPtCorr.h"
 
 #include "DummyJetCorrector.h"
 
@@ -46,7 +47,9 @@ namespace names{
 }
 
 enum collisionType { cPbPb, cPP, cPPb };
-
+const long MAXMEM = 16000000000;
+  
+  
 class HiForest : public TNamed
 {
 
@@ -70,7 +73,7 @@ class HiForest : public TNamed
   void LoadNoTrees();
   void ResetBooleans();
   void GoCrazy();
-
+  Float_t getTrkRMin(Float_t phi, Float_t eta, Jets jtCollection, Bool_t isGen = false);
 
   void Draw(Option_t* option){
     return tree->Draw(option);
@@ -120,9 +123,10 @@ class HiForest : public TNamed
   int getMatchedHBHEAllowReuse(int j);
   void matchTrackCalo(bool allEvents = 1);
   double getTrackCorrectionPara(int j);
-  double getTrackCorrection(int j);
+  float getTrackCorrection(int j);
   bool selectTrack(int j);
-  
+  Double_t getDR( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
+  Double_t getDPHI( Double_t phi1, Double_t phi2); 
   //==================================================================================================================================
   // Get track-jet correlated variables. Not needed if correlatePF is run.
   //==================================================================================================================================
@@ -300,7 +304,7 @@ class HiForest : public TNamed
 
   bool hasHltTree;
   bool hasTrackTree;
-  bool hasPixTrackTree;
+  // bool hasPixTrackTree;
   bool hasSkimTree;
   bool hasTowerTree;
   bool hasHbheTree;
@@ -406,11 +410,11 @@ HiForest::HiForest(const char *infName, const char* name, collisionType cMode, b
    currentEvent(0)
 {
   whichjet = jetname;
-   tree = new TTree("tree","");
+   tree = new TTree(name,"");
   SetName(name);
   // Input file
   inf = TFile::Open(infName);
-
+cout<<"after open"<<endl;
   cone = 0.3;
   doTrackCorrections = 0;
   
@@ -424,7 +428,9 @@ HiForest::HiForest(const char *infName, const char* name, collisionType cMode, b
 
   // Track correction initialized?
   initialized = 0;
-
+  InitCorrFiles();
+  InitCorrHists();
+  
   // Print out collision mode:
   cout <<"Collision Mode:";
   if (collisionMode == cPP) cout <<" P+P"<<endl;  
@@ -435,8 +441,8 @@ HiForest::HiForest(const char *infName, const char* name, collisionType cMode, b
   hltTree          = (TTree*) inf->Get("hltanalysis/HltTree");
   skimTree         = (TTree*) inf->Get("skimanalysis/HltTree");
   photonTree       = (TTree*) inf->Get("multiPhotonAnalyzer/photon");
-  if (collisionMode == cPbPb || collisionMode == cPP) trackTree        = (TTree*) inf->Get("anaTrack/trackTree");
-  if (collisionMode == cPPb) trackTree        = (TTree*) inf->Get("ppTrack/trackTree");
+  trackTree        = (TTree*) inf->Get("anaTrack/trackTree");
+  if( trackTree == 0 ) trackTree        = (TTree*) inf->Get("ppTrack/trackTree");
   towerTree        = (TTree*) inf->Get("rechitanalyzer/tower");
   icPu5jetTree     = (TTree*) inf->Get("icPu5JetAnalyzer/t");
 
@@ -541,7 +547,9 @@ HiForest::HiForest(const char *infName, const char* name, collisionType cMode, b
   hasEbTree        = (ebTree       		!= 0);
   hasGenpTree	   = (genpTree     		!=0);
   hasGenParticleTree = (genParticleTree   	!=0);
+  mc = hasGenParticleTree;
   setupOutput = false;
+cout<<"before init tree"<<endl;
   InitTree();
 }
 
@@ -607,7 +615,7 @@ void HiForest::GetEntry(int i)
   if (hasAkVs6CaloJetTree) akVs6CaloJetTree ->GetEntry(i);
 
   if (hasTrackTree)    trackTree    ->GetEntry(i);
-  if (hasPixTrackTree) pixtrackTree ->GetEntry(i);
+  // if (hasPixTrackTree) pixtrackTree ->GetEntry(i);
   if (hasTowerTree)    towerTree    ->GetEntry(i);
   if (hasHbheTree)     hbheTree     ->GetEntry(i);
   if (hasEbTree)       ebTree     ->GetEntry(i);
@@ -626,7 +634,7 @@ int HiForest::GetEntries()
 
 void HiForest::InitTree()
 {
-
+cout<<"before photon"<<endl;
    // Setup branches. See also Setup*.h
    if (hasPhotonTree) {
       photonTree->SetName("photon");
@@ -634,6 +642,7 @@ void HiForest::InitTree()
       if (tree == 0) tree = photonTree; else tree->AddFriend(photonTree);
       setupPhotonTree(photonTree,photon);
    }
+cout<<"after photon"<<endl;
    if (hasPFTree) {
       pfTree->SetName("pf");
       if (tree == 0) tree = pfTree; else tree->AddFriend(pfTree);
@@ -657,6 +666,8 @@ void HiForest::InitTree()
       if (tree == 0) tree = hltTree; else tree->AddFriend(hltTree);
       setupHltTree(hltTree,hlt);
    }
+   cout<<"after hltttree"<<endl;
+
 
    if (hasIcPu5JetTree) {
       icPu5jetTree->SetName("icPu5");
@@ -848,7 +859,7 @@ void HiForest::InitTree()
      if (tree == 0) tree = akVs6CaloJetTree; else tree->AddFriend(akVs6CaloJetTree);
      setupJetTree(akVs6CaloJetTree,akVs6Calo);
    }
-
+   cout<<"after jet trees"<<endl;
    if (hasTrackTree) {
       trackTree->SetName("track");
       if (tree == 0) tree = trackTree; else tree->AddFriend(trackTree);
@@ -856,13 +867,14 @@ void HiForest::InitTree()
       trackTree->SetAlias("mergedSelected","(trkAlgo<4||(highPurity&&trkAlgo==4)))");
       setupTrackTree(trackTree,track);
    }
+   cout<<"after track trees"<<endl;
 
-   if (hasPixTrackTree) {
-      pixtrackTree->SetName("pixtrack");
-      if (tree == 0) tree = pixtrackTree; else tree->AddFriend(pixtrackTree);
-      setupTrackTree(pixtrackTree,pixtrack);
-   }
-
+   // if (hasPixTrackTree) {
+      // pixtrackTree->SetName("pixtrack");
+      // if (tree == 0) tree = pixtrackTree; else tree->AddFriend(pixtrackTree);
+      // setupTrackTree(pixtrackTree,pixtrack);
+   // }
+cout<<"before skim tree"<<endl;
    if (hasSkimTree) {
       skimTree->SetName("skim");
       if (tree == 0) tree = skimTree; else tree->AddFriend(skimTree);
@@ -875,7 +887,7 @@ void HiForest::InitTree()
      if (tree == 0) tree = noiseTree; else tree->AddFriend(noiseTree);
      setupNoiseTree(noiseTree,hcalNoise);
    }
-
+cout<<"before tower tree"<<endl;
    if (hasTowerTree) {
       towerTree->SetName("tower");
       if (tree == 0) tree = towerTree; else tree->AddFriend(towerTree);
@@ -893,7 +905,7 @@ void HiForest::InitTree()
       if (tree == 0) tree = ebTree; else tree->AddFriend(ebTree);
       setupHitTree(ebTree,eb);
    }
-
+cout<<"before genp tree"<<endl;
    if (hasGenpTree) {
       genpTree->SetName("genp");
       if (tree == 0) tree = genpTree; else tree->AddFriend(genpTree);
@@ -929,6 +941,7 @@ void HiForest::InitTree()
      setupJetTree(akVs3PFJetTree,myjet);
    }
 
+cout<<"before printstatus"<<endl;
    // Print the status of thre forest
    PrintStatus();
 
@@ -978,6 +991,7 @@ void HiForest::InitTree()
          exit(1);
       }
    }
+cout<<"end init"<<endl;
 }
 
 void HiForest::CheckTree(TTree *t,const char *title)
@@ -1065,7 +1079,7 @@ void HiForest::PrintStatus()
   if (hasAkVs6CaloJetTree) CheckTree(akVs6CaloJetTree, "AkVs6CaloJetTree");
 
   if (hasTrackTree)    CheckTree(trackTree,    "TrackTree");
-  if (hasPixTrackTree) CheckTree(pixtrackTree, "PixTrackTree");
+  // if (hasPixTrackTree) CheckTree(pixtrackTree, "PixTrackTree");
   if (hasPhotonTree)   CheckTree(photonTree,   "PhotonTree");
   if (hasPFTree)       CheckTree(pfTree,   "PFTree");
   if (hasMetTree)      CheckTree(metTree,   "MetTree");
@@ -1114,7 +1128,7 @@ void HiForest::SetOutputFile(const char *name)
   if (hasAkVs6CaloJetTree) AddCloneTree(akVs6CaloJetTree, "akVs6CaloJetAnalyzer", "t");
 
   if (hasTrackTree)    AddCloneTree(trackTree,    "ppTrack",           "trackTree");
-  if (hasPixTrackTree) AddCloneTree(pixtrackTree, "anaPixTrack",        "trackTree");
+  // if (hasPixTrackTree) AddCloneTree(pixtrackTree, "anaPixTrack",        "trackTree");
   if (hasPhotonTree)   AddCloneTree(photonTree,   "multiPhotonAnalyzer",            "photon");
   if (hasPFTree)   AddCloneTree(pfTree,   "pfcandAnalyzer",            "pfTree");
   if (hasEvtTree)      AddCloneTree(evtTree,      "hiEvtAnalyzer",            "HiTree");
@@ -1134,7 +1148,7 @@ void HiForest::AddCloneTree(TTree* t, const char *dirName, const char *treeName)
 
   // Add a clone tree to the clone forest
   TTree *tClone = t->CloneTree(0);
-  tClone->SetMaxTreeSize(4000000000);
+  tClone->SetMaxTreeSize(MAXMEM);
   tClone->SetName(treeName);
   
   cloneForest.push_back(tClone);
@@ -1248,7 +1262,7 @@ void HiForest::LoadNoTrees()
 
   hasHltTree = false;
   hasTrackTree = false;
-  hasPixTrackTree = false;
+  // hasPixTrackTree = false;
   hasSkimTree = false;
   hasTowerTree = false;
   hasHbheTree = false;
@@ -1256,6 +1270,7 @@ void HiForest::LoadNoTrees()
   hasGenpTree = false;
   hasGenParticleTree = false;
 }
+
 
 void HiForest::ResetBooleans()
 {
@@ -1316,80 +1331,191 @@ hasPhotonTree        = (photonTree       	!= 0);
 
 void HiForest::GoCrazy()
 {
-  // if (hasHltTree)      hltTree->LoadBaskets(4000000000);
-  // if (hasSkimTree)     skimTree->LoadBaskets(4000000000);
-  // if (hasIcPu5JetTree) icPu5jetTree->LoadBaskets(4000000000);
-  // if (hasAkPu2JetTree) akPu2jetTree->LoadBaskets(4000000000);
-  // if (hasAkPu3JetTree) akPu3jetTree->LoadBaskets(4000000000);
-  // if (hasAkPu4JetTree) akPu4jetTree->LoadBaskets(4000000000);
-  // if (hasAkPu2CaloJetTree) akPu2CaloJetTree->LoadBaskets(4000000000);
-  // if (hasAkPu3CaloJetTree) akPu3CaloJetTree->LoadBaskets(4000000000);
-  // if (hasAkPu4CaloJetTree) akPu4CaloJetTree->LoadBaskets(4000000000);
-  // if (hasTrackTree)    trackTree->LoadBaskets(4000000000);
-  // if (hasMuTree)    muTree->LoadBaskets(4000000000);
-  // if (hasPixTrackTree) pixtrackTree->LoadBaskets(4000000000);
-  // if (hasPhotonTree)   photonTree->LoadBaskets(4000000000);
-  // if (hasPFTree)       pfTree->LoadBaskets(4000000000);
-  // if (hasMetTree)      metTree->LoadBaskets(4000000000);
-  // if (hasTowerTree)    towerTree->LoadBaskets(4000000000);
-  // if (hasHbheTree)     hbheTree->LoadBaskets(4000000000);
-  // if (hasEbTree)       ebTree->LoadBaskets(4000000000);
-  // if (hasGenpTree)      genpTree->LoadBaskets(4000000000);
-  // if (hasGenParticleTree)      genParticleTree->LoadBaskets(4000000000);
+  // if (hasHltTree)      hltTree->LoadBaskets(MAXMEM);
+  // if (hasSkimTree)     skimTree->LoadBaskets(MAXMEM);
+  // if (hasIcPu5JetTree) icPu5jetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu2JetTree) akPu2jetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu3JetTree) akPu3jetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu4JetTree) akPu4jetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu2CaloJetTree) akPu2CaloJetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu3CaloJetTree) akPu3CaloJetTree->LoadBaskets(MAXMEM);
+  // if (hasAkPu4CaloJetTree) akPu4CaloJetTree->LoadBaskets(MAXMEM);
+  // if (hasTrackTree)    trackTree->LoadBaskets(MAXMEM);
+  // if (hasMuTree)    muTree->LoadBaskets(MAXMEM);
+  // if (hasPixTrackTree) pixtrackTree->LoadBaskets(MAXMEM);
+  // if (hasPhotonTree)   photonTree->LoadBaskets(MAXMEM);
+  // if (hasPFTree)       pfTree->LoadBaskets(MAXMEM);
+  // if (hasMetTree)      metTree->LoadBaskets(MAXMEM);
+  // if (hasTowerTree)    towerTree->LoadBaskets(MAXMEM);
+  // if (hasHbheTree)     hbheTree->LoadBaskets(MAXMEM);
+  // if (hasEbTree)       ebTree->LoadBaskets(MAXMEM);
+  // if (hasGenpTree)      genpTree->LoadBaskets(MAXMEM);
+  // if (hasGenParticleTree)      genParticleTree->LoadBaskets(MAXMEM);
+  
 
-  if (hasPhotonTree)   photonTree   ->LoadBaskets(4000000000);
-  if (hasPFTree)       pfTree   ->LoadBaskets(4000000000);
-  if (hasEvtTree)      evtTree   ->LoadBaskets(4000000000);
-  if (hasMetTree)      metTree   ->LoadBaskets(4000000000);
-  if (hasHltTree)      hltTree      ->LoadBaskets(4000000000);
-  if (hasSkimTree)     skimTree     ->LoadBaskets(4000000000);
-  if (hasNoiseTree)     noiseTree->LoadBaskets(4000000000);
-  if (hasIcPu5JetTree) icPu5jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu2JetTree) akPu2jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu3JetTree) akPu3jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu4JetTree) akPu4jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu5JetTree) akPu5jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu6JetTree) akPu6jetTree ->LoadBaskets(4000000000);
-  if (hasAkPu2CaloJetTree) akPu2CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkPu3CaloJetTree) akPu3CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkPu4CaloJetTree) akPu4CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkPu5CaloJetTree) akPu5CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkPu6CaloJetTree) akPu6CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAk2JetTree) ak2jetTree ->LoadBaskets(4000000000);
-  if (hasAk3JetTree) ak3jetTree ->LoadBaskets(4000000000);
-  if (hasAk4JetTree) ak4jetTree ->LoadBaskets(4000000000);
-  if (hasAk5JetTree) ak5jetTree ->LoadBaskets(4000000000);
-  if (hasAk6JetTree) ak6jetTree ->LoadBaskets(4000000000);
-  if (hasAk2CaloJetTree) ak2CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAk3CaloJetTree) ak3CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAk4CaloJetTree) ak4CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAk5CaloJetTree) ak5CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAk6CaloJetTree) ak6CaloJetTree ->LoadBaskets(4000000000);
-  if (hasTrackTree)    trackTree    ->LoadBaskets(4000000000);
-  if (hasPixTrackTree) pixtrackTree ->LoadBaskets(4000000000);
-  if (hasTowerTree)    towerTree    ->LoadBaskets(4000000000);
-  if (hasHbheTree)     hbheTree     ->LoadBaskets(4000000000);
-  if (hasEbTree)       ebTree     ->LoadBaskets(4000000000);
-  if (hasGenpTree)     genpTree   ->LoadBaskets(4000000000);
-  if (hasGenParticleTree) genParticleTree   ->LoadBaskets(4000000000);
+
+  if (hasPhotonTree)   photonTree   ->LoadBaskets(MAXMEM);
+  if (hasPFTree)       pfTree   ->LoadBaskets(MAXMEM);
+  if (hasEvtTree)      evtTree   ->LoadBaskets(MAXMEM);
+  if (hasMetTree)      metTree   ->LoadBaskets(MAXMEM);
+  if (hasHltTree)      hltTree      ->LoadBaskets(MAXMEM);
+  if (hasSkimTree)     skimTree     ->LoadBaskets(MAXMEM);
+  if (hasNoiseTree)     noiseTree->LoadBaskets(MAXMEM);
+  if (hasIcPu5JetTree) icPu5jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu2JetTree) akPu2jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu3JetTree) akPu3jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu4JetTree) akPu4jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu5JetTree) akPu5jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu6JetTree) akPu6jetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu2CaloJetTree) akPu2CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu3CaloJetTree) akPu3CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu4CaloJetTree) akPu4CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu5CaloJetTree) akPu5CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkPu6CaloJetTree) akPu6CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAk2JetTree) ak2jetTree ->LoadBaskets(MAXMEM);
+  if (hasAk3JetTree) ak3jetTree ->LoadBaskets(MAXMEM);
+  if (hasAk4JetTree) ak4jetTree ->LoadBaskets(MAXMEM);
+  if (hasAk5JetTree) ak5jetTree ->LoadBaskets(MAXMEM);
+  if (hasAk6JetTree) ak6jetTree ->LoadBaskets(MAXMEM);
+  if (hasAk2CaloJetTree) ak2CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAk3CaloJetTree) ak3CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAk4CaloJetTree) ak4CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAk5CaloJetTree) ak5CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAk6CaloJetTree) ak6CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasTrackTree)    trackTree    ->LoadBaskets(MAXMEM);
+  // if (hasPixTrackTree) pixtrackTree ->LoadBaskets(MAXMEM);
+  if (hasTowerTree)    towerTree    ->LoadBaskets(MAXMEM);
+  if (hasHbheTree)     hbheTree     ->LoadBaskets(MAXMEM);
+  if (hasEbTree)       ebTree     ->LoadBaskets(MAXMEM);
+  if (hasGenpTree)     genpTree   ->LoadBaskets(MAXMEM);
+  if (hasGenParticleTree) genParticleTree   ->LoadBaskets(MAXMEM);
 
   
-  if (hasAkVs2PFJetTree) akVs2PFJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs3PFJetTree) akVs3PFJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs4PFJetTree) akVs4PFJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs5PFJetTree) akVs5PFJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs6PFJetTree) akVs6PFJetTree ->LoadBaskets(4000000000);
+  if (hasAkVs2PFJetTree) akVs2PFJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs3PFJetTree) akVs3PFJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs4PFJetTree) akVs4PFJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs5PFJetTree) akVs5PFJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs6PFJetTree) akVs6PFJetTree ->LoadBaskets(MAXMEM);
 
-  if (hasAkVs2CaloJetTree) akVs2CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs3CaloJetTree) akVs3CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs4CaloJetTree) akVs4CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs5CaloJetTree) akVs5CaloJetTree ->LoadBaskets(4000000000);
-  if (hasAkVs6CaloJetTree) akVs6CaloJetTree ->LoadBaskets(4000000000);
+  if (hasAkVs2CaloJetTree) akVs2CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs3CaloJetTree) akVs3CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs4CaloJetTree) akVs4CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs5CaloJetTree) akVs5CaloJetTree ->LoadBaskets(MAXMEM);
+  if (hasAkVs6CaloJetTree) akVs6CaloJetTree ->LoadBaskets(MAXMEM);
 
 
   
   cout<<"Note: GoCrazy called, letting trees decompress everything into RAM"<<endl;
 }
+
+float HiForest::getTrackCorrection(int j)
+{
+  float trkpt = track.trkPt[j];
+  float trketa = track.trkEta[j];
+  float trkphi = track.trkPhi[j];
+  int cent = evt.hiBin;
+  int whichHist = 0;
+  if(trkpt < 1.0)
+  {
+    if(cent<20) whichHist = 0;
+    if(cent>=20 && cent<40) whichHist = 1;
+    if(cent>=40 && cent<60) whichHist = 2;
+    if(cent>=60 && cent<100) whichHist = 3;
+    if(cent>=100 && cent<100) whichHist = 4;
+  }
+  else if(trkpt>=1.0 && trkpt < 3.0)
+  {
+    if(cent<20) whichHist = 5;
+    if(cent>=20 && cent<40) whichHist = 6;
+    if(cent>=40 && cent<60) whichHist = 7;
+    if(cent>=60 && cent<100) whichHist = 8;
+    if(cent>=100 && cent<100) whichHist = 9;
+  }
+  else if(trkpt>=3.0 && trkpt < 8.0)
+  {
+    if(cent<20) whichHist = 10;
+    if(cent>=20 && cent<40) whichHist = 11;
+    if(cent>=40 && cent<200) whichHist = 12;
+  }
+  else 
+  {
+    whichHist = 13;
+  }
+  float eff = 1.0, fake = 0.0;
+  float dr = getTrkRMin(trkphi,trketa,akVs3Calo);
+  int ptbin = PuCalopt_p[whichHist]->FindBin(trkpt);
+  int centbin = PuCalocent_p[whichHist]->FindBin(cent);
+  int etaphibin = PuCalophiEta_p[whichHist]->FindBin(trkphi,trketa);
+  int drbin = PuCalodelR_p[whichHist]->FindBin(dr);
+  
+  eff *= PuCalopt_p[whichHist]->GetBinContent(ptbin);
+  eff *= PuCalocent_p[whichHist]->GetBinContent(centbin);
+  eff *= PuCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  if(dr<5) 
+    eff *= PuCalodelR_p[whichHist]->GetBinContent(drbin);
+  
+  fake += FakePuCalopt_p[whichHist]->GetBinContent(ptbin);
+  fake += FakePuCalocent_p[whichHist]->GetBinContent(centbin);
+  fake += FakePuCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  if(dr<5) 
+    fake += FakePuCalodelR_p[whichHist]->GetBinContent(drbin);
+  
+  
+  if(eff != 0)
+    return (1.0 - fake) / eff;
+  return (1.0 - fake);
+}
+
+Float_t HiForest::getTrkRMin(Float_t phi, Float_t eta, Jets jtCollection, Bool_t isGen )
+{
+  Float_t trkRMin = 10;
+  
+  if(!isGen){
+    for(Int_t jtEntry = 0; jtEntry < jtCollection.nref; jtEntry++){
+      if(jtCollection.jtpt[jtEntry] < 30 || TMath::Abs(jtCollection.jteta[jtEntry]) > 2.0)
+        continue;
+
+      if(trkRMin > getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]))
+        trkRMin = getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
+    }
+  }
+  else if(isGen){
+    for(Int_t jtEntry = 0; jtEntry < jtCollection.ngen; jtEntry++){
+      if(jtCollection.genpt[jtEntry] < 30 || TMath::Abs(jtCollection.geneta[jtEntry]) > 2.0)
+        continue;
+
+      if(trkRMin > getDR(eta, phi, jtCollection.geneta[jtEntry], jtCollection.genphi[jtEntry]))
+        trkRMin = getDR(eta, phi, jtCollection.geneta[jtEntry], jtCollection.genphi[jtEntry]);
+    }
+  }
+
+  return trkRMin;
+}
+
+Double_t HiForest::getDPHI( Double_t phi1, Double_t phi2) {
+  Double_t dphi = phi1 - phi2;
+ 
+  if ( dphi > TMath::Pi() )
+    dphi = dphi - 2. * TMath::Pi();
+  if ( dphi <= -TMath::Pi() ) 
+    dphi = dphi + 2. * TMath::Pi();
+  
+  if ( TMath::Abs(dphi) > TMath::Pi() ) {
+    cout << " commonUtility::getDPHI error!!! dphi is bigger than 3.141592653589 " << endl;
+  }
+  
+  return dphi;
+}
+
+
+
+Double_t HiForest::getDR( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2){ 
+  Double_t theDphi = getDPHI( phi1, phi2);
+  Double_t theDeta = eta1 - eta2;
+  return TMath::Sqrt ( theDphi*theDphi + theDeta*theDeta);
+}
+
+
 
 
 // ====================== Track Utilities ========================
