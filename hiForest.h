@@ -1451,20 +1451,25 @@ float HiForest::getTrackCorrection(int j)
   int phibin = VsCalophiEta_p[whichHist]->GetXaxis()->FindBin(trkphi);
   int etabin = VsCalophiEta_p[whichHist]->GetYaxis()->FindBin(trketa);
   int drbin = VsCalodelR_p[whichHist]->FindBin(dr);
-  
+  int fake_ptbin = FakeVsCalopt_p[whichHist]->FindBin(trkpt);
+  int fake_centbin = FakeVsCalocent_p[whichHist]->FindBin(cent);
+  int fake_phibin = FakeVsCalophiEta_p[whichHist]->GetXaxis()->FindBin(trkphi);
+  int fake_etabin = FakeVsCalophiEta_p[whichHist]->GetYaxis()->FindBin(trketa);
+  int fake_drbin = FakeVsCalodelR_p[whichHist]->FindBin(dr);
+ 
   eff *= VsCalopt_p[whichHist]->GetBinContent(ptbin);
   eff *= VsCalocent_p[whichHist]->GetBinContent(centbin);
   eff *= VsCalophiEta_p[whichHist]->GetBinContent(phibin,etabin);
   if(dr<5) 
     eff *= VsCalodelR_p[whichHist]->GetBinContent(drbin);
   
-  fake += FakeVsCalopt_p[whichHist]->GetBinContent(ptbin);
-  fake += FakeVsCalocent_p[whichHist]->GetBinContent(centbin);
-  fake += FakeVsCalophiEta_p[whichHist]->GetBinContent(phibin,etabin);
+  fake += FakeVsCalopt_p[whichHist]->GetBinContent(fake_ptbin);
+  fake += FakeVsCalocent_p[whichHist]->GetBinContent(fake_centbin);
+  fake += FakeVsCalophiEta_p[whichHist]->GetBinContent(fake_phibin,fake_etabin);
   if(dr<5) 
     fake += FakeVsCalodelR_p[whichHist]->GetBinContent(drbin);
   
-  cout <<trkpt<< " "<<cent<<" " << fake << " "<< eff<<" " <<dr<<" "<<whichHist<<" | "<<ptbin<<" "<<centbin<<" "<<phibin<<" "<<etabin<<endl;
+  //cout <<trkpt<< " "<<cent<<" " << fake << " "<< eff<<" " <<dr<<" "<<whichHist<<" | "<<ptbin<<" "<<centbin<<" "<<phibin<<" "<<etabin<<endl;
   if(eff==0) {
      if(trkpt>100) eff=0.8; else eff = 1;
   }  
