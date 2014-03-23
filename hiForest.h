@@ -1183,11 +1183,13 @@ bool HiForest::selectEvent(){
    if(collisionMode==cPbPb){
       select = select && skim.pcollisionEventSelection;
    }else if(collisionMode==cPPb || collisionMode==cPP){
+/*
     select = select &&
        skim.phfPosFilter1 &&
        skim.phfNegFilter1 &&
        skim.pBeamScrapingFilter &&
        skim.pprimaryvertexFilter;
+*/
    }
    return select;
 }
@@ -1421,7 +1423,7 @@ float HiForest::getTrackCorrection(int j)
     if(cent>=20 && cent<40) whichHist = 1;
     if(cent>=40 && cent<60) whichHist = 2;
     if(cent>=60 && cent<100) whichHist = 3;
-    if(cent>=100 && cent<100) whichHist = 4;
+    if(cent>=100 && cent<200) whichHist = 4;
   }
   else if(trkpt>=1.0 && trkpt < 3.0)
   {
@@ -1429,7 +1431,7 @@ float HiForest::getTrackCorrection(int j)
     if(cent>=20 && cent<40) whichHist = 6;
     if(cent>=40 && cent<60) whichHist = 7;
     if(cent>=60 && cent<100) whichHist = 8;
-    if(cent>=100 && cent<100) whichHist = 9;
+    if(cent>=100 && cent<200) whichHist = 9;
   }
   else if(trkpt>=3.0 && trkpt < 8.0)
   {
@@ -1443,24 +1445,26 @@ float HiForest::getTrackCorrection(int j)
   }
   float eff = 1.0, fake = 0.0;
   float dr = getTrkRMin(trkphi,trketa,akVs3Calo);
-  int ptbin = PuCalopt_p[whichHist]->FindBin(trkpt);
-  int centbin = PuCalocent_p[whichHist]->FindBin(cent);
-  int etaphibin = PuCalophiEta_p[whichHist]->FindBin(trkphi,trketa);
-  int drbin = PuCalodelR_p[whichHist]->FindBin(dr);
+  int ptbin = VsCalopt_p[whichHist]->FindBin(trkpt);
+  int centbin = VsCalocent_p[whichHist]->FindBin(cent);
+  int etaphibin = VsCalophiEta_p[whichHist]->FindBin(trkphi,trketa);
+  int drbin = VsCalodelR_p[whichHist]->FindBin(dr);
   
-  eff *= PuCalopt_p[whichHist]->GetBinContent(ptbin);
-  eff *= PuCalocent_p[whichHist]->GetBinContent(centbin);
-  eff *= PuCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  eff *= VsCalopt_p[whichHist]->GetBinContent(ptbin);
+  eff *= VsCalocent_p[whichHist]->GetBinContent(centbin);
+  eff *= VsCalophiEta_p[whichHist]->GetBinContent(etaphibin);
   if(dr<5) 
-    eff *= PuCalodelR_p[whichHist]->GetBinContent(drbin);
+    eff *= VsCalodelR_p[whichHist]->GetBinContent(drbin);
   
-  fake += FakePuCalopt_p[whichHist]->GetBinContent(ptbin);
-  fake += FakePuCalocent_p[whichHist]->GetBinContent(centbin);
-  fake += FakePuCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  fake += FakeVsCalopt_p[whichHist]->GetBinContent(ptbin);
+  fake += FakeVsCalocent_p[whichHist]->GetBinContent(centbin);
+  fake += FakeVsCalophiEta_p[whichHist]->GetBinContent(etaphibin);
   if(dr<5) 
-    fake += FakePuCalodelR_p[whichHist]->GetBinContent(drbin);
+    fake += FakeVsCalodelR_p[whichHist]->GetBinContent(drbin);
   
-  
+  if(eff==0) {
+     if(trkpt>100) eff=0.8; else eff = 1;
+  }  
   if(eff != 0)
     return (1.0 - fake) / eff;
   return (1.0 - fake);
@@ -1468,15 +1472,15 @@ float HiForest::getTrackCorrection(int j)
 
 Float_t HiForest::getTrkRMin(Float_t phi, Float_t eta, Jets jtCollection, Bool_t isGen )
 {
-  Float_t trkRMin = 10;
+  Float_t trkRMin = 100;
   
   if(!isGen){
     for(Int_t jtEntry = 0; jtEntry < jtCollection.nref; jtEntry++){
       if(jtCollection.jtpt[jtEntry] < 30 || TMath::Abs(jtCollection.jteta[jtEntry]) > 2.0)
         continue;
-
-      if(trkRMin > getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]))
-        trkRMin = getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
+      double dR=getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
+      if(trkRMin > dR)
+        trkRMin = dR;
     }
   }
   else if(isGen){
