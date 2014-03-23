@@ -1485,8 +1485,8 @@ Float_t HiForest::getTrkRMin(Float_t phi, Float_t eta, Jets jtCollection, Bool_t
   if(!isGen){
     for(Int_t jtEntry = 0; jtEntry < jtCollection.nref; jtEntry++){
       if(jtCollection.jtpt[jtEntry] < 30 || fabs(jtCollection.jteta[jtEntry]) > 2.0)        continue;
-//      double dR=getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
-        double 	dR=sqrt(pow(eta-jtCollection.jteta[jtEntry],2)+pow(acos(cos(phi-jtCollection.jtphi[jtEntry])),2));
+      double dR=getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
+//        double 	dR=sqrt(pow(eta-jtCollection.jteta[jtEntry],2)+pow(acos(cos(phi-jtCollection.jtphi[jtEntry])),2));
      if(dR < trkRMin)
         trkRMin = dR;
     }
