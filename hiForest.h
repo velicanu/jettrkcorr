@@ -1415,6 +1415,7 @@ float HiForest::getTrackCorrection(int j)
   float trkpt = track.trkPt[j];
   float trketa = track.trkEta[j];
   float trkphi = track.trkPhi[j];
+
   int cent = evt.hiBin;
   int whichHist = 0;
   if(trkpt < 1.0)
@@ -1447,21 +1448,23 @@ float HiForest::getTrackCorrection(int j)
   float dr = getTrkRMin(trkphi,trketa,akVs3Calo);
   int ptbin = VsCalopt_p[whichHist]->FindBin(trkpt);
   int centbin = VsCalocent_p[whichHist]->FindBin(cent);
-  int etaphibin = VsCalophiEta_p[whichHist]->FindBin(trkphi,trketa);
+  int phibin = VsCalophiEta_p[whichHist]->GetXaxis()->FindBin(trkphi);
+  int etabin = VsCalophiEta_p[whichHist]->GetYaxis()->FindBin(trketa);
   int drbin = VsCalodelR_p[whichHist]->FindBin(dr);
   
   eff *= VsCalopt_p[whichHist]->GetBinContent(ptbin);
   eff *= VsCalocent_p[whichHist]->GetBinContent(centbin);
-  eff *= VsCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  eff *= VsCalophiEta_p[whichHist]->GetBinContent(phibin,etabin);
   if(dr<5) 
     eff *= VsCalodelR_p[whichHist]->GetBinContent(drbin);
   
   fake += FakeVsCalopt_p[whichHist]->GetBinContent(ptbin);
   fake += FakeVsCalocent_p[whichHist]->GetBinContent(centbin);
-  fake += FakeVsCalophiEta_p[whichHist]->GetBinContent(etaphibin);
+  fake += FakeVsCalophiEta_p[whichHist]->GetBinContent(phibin,etabin);
   if(dr<5) 
     fake += FakeVsCalodelR_p[whichHist]->GetBinContent(drbin);
   
+  cout <<trkpt<< " "<<cent<<" " << fake << " "<< eff<<" " <<dr<<" "<<whichHist<<" | "<<ptbin<<" "<<centbin<<" "<<phibin<<" "<<etabin<<endl;
   if(eff==0) {
      if(trkpt>100) eff=0.8; else eff = 1;
   }  
@@ -1476,14 +1479,14 @@ Float_t HiForest::getTrkRMin(Float_t phi, Float_t eta, Jets jtCollection, Bool_t
   
   if(!isGen){
     for(Int_t jtEntry = 0; jtEntry < jtCollection.nref; jtEntry++){
-      if(jtCollection.jtpt[jtEntry] < 30 || TMath::Abs(jtCollection.jteta[jtEntry]) > 2.0)
-        continue;
-      double dR=getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
-      if(trkRMin > dR)
+      if(jtCollection.jtpt[jtEntry] < 30 || fabs(jtCollection.jteta[jtEntry]) > 2.0)        continue;
+//      double dR=getDR(eta, phi, jtCollection.jteta[jtEntry], jtCollection.jtphi[jtEntry]);
+        double 	dR=sqrt(pow(eta-jtCollection.jteta[jtEntry],2)+pow(acos(cos(phi-jtCollection.jtphi[jtEntry])),2));
+     if(dR < trkRMin)
         trkRMin = dR;
     }
   }
-  else if(isGen){
+  else {
     for(Int_t jtEntry = 0; jtEntry < jtCollection.ngen; jtEntry++){
       if(jtCollection.genpt[jtEntry] < 30 || TMath::Abs(jtCollection.geneta[jtEntry]) > 2.0)
         continue;
