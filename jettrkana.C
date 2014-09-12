@@ -1,5 +1,6 @@
 // #include "/net/hisrv0001/home/dav2105/run/CMSSW_4_4_4/src/CmsHi/JetAnalysis/macros/forest/hiForest_charge.h"
-#include "hiForest.h"
+#include "HiForestAnalysis/hiForest.h"
+// #include "hiForest.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -21,6 +22,10 @@ float sigvzarray[100000];
 float bakvzarray[100000];
 bool bakpcollarray[100000];
 bool bakhbhearray[100000];
+bool bakhltjet80[100000];
+
+TH1D * hcent;
+TH1D * hcentpostcut;
 
 TH1D * hmult;
 TH1D * hpttrg;
@@ -86,7 +91,7 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
     bakvzarray[i]=bk->evt.vz;
     bakpcollarray[i]=c->skim.pcollisionEventSelection;
     bakhbhearray[i]=c->skim.pHBHENoiseFilter;
-    
+    // bakhltjet80[i]=c->hlt.HLT_HIJet80_v1;
   }
 }
 
@@ -113,6 +118,9 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
   hjeteta    = new TH1D(Form("hjet%d_eta_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",80,-4,4);
   hjetphi    = new TH1D(Form("hjet%d_phi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#phi",80,-TMath::Pi(),TMath::Pi());
   hjetpt    = new TH1D(Form("hjet%d_pt_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";p_{T}",80,0,leadingjetpthigh);
+  
+  hcent    = new TH1D(Form("hcent%d_pt_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";p_{T}",80,0,leadingjetpthigh);
+  hcentpostcut    = new TH1D(Form("hcentpostcut%d_pt_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";p_{T}",80,0,leadingjetpthigh);
   
   
   hjetdphi    = new TH1D(Form("hjet%d_dphi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#Delta#phi",40,0,TMath::Pi());
@@ -156,7 +164,11 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(jentry);
     // cout<<"gotentry "<<jentry<<endl;
+    // cout<<c->evt.hiBin<<endl; 
+    hcent->Fill(c->evt.hiBin);
+    // if(jentry>10) exit(1);
     if(c->evt.hiBin < centmin || c->evt.hiBin > centmax) continue;
+
     //! jet cuts, vz range, more than 2 jettss, dijetdphi 7/8 pi, both jet |eta| < 2, pt range cuts, aj cuts
     // cout<<mccommand<<endl;
     // cout<<"selectEvent"<<endl;
@@ -175,7 +187,8 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     else
     {
       //if is PbPb Data
-      if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter)) continue;
+      if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter )) continue;
+      // if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter && c->hlt.HLT_HIJet80_v1 )) continue;
     }
     // cout<<"event selected"<<endl;
     if( fabs(c->evt.vz) > vzrange ) continue;
@@ -209,7 +222,7 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     double dijetdphi = fabs(c->myjet.jtphi[leadindex] - c->myjet.jtphi[subleadindex]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
     // cout<< dijetdphi << " vs " << dijetdphicut << endl;
-    if( dijetdphi < dijetdphicut ) continue;
+    if( fabs(dijetdphi) < dijetdphicut ) continue;
     // cout<<"dphicut "<<c->myjet.nref<<endl;
     // int jetindex = -1;
     // while(true)
@@ -303,6 +316,7 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
 
       }
     }
+    hcentpostcut->Fill(c->evt.hiBin);
     // }
     // cout<<"end"<<endl;
     // }
@@ -384,7 +398,8 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
     else
     {
       //if is PbPb Data
-      if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter)) continue;
+      if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter )) continue;
+      // if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter && c->hlt.HLT_HIJet80_v1)) continue;
     }
     
     if( fabs(c->evt.vz) > vzrange ) continue;
@@ -415,24 +430,24 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
     int dojet = -1;
     if(jetindex==0) dojet = leadindex;
     else if(jetindex==1) dojet = subleadindex;
-    else { cout<<"Error: in JetTrackSignal, only jetindex 0 and 1 supported"<<endl; exit(1); }
+    else { cout<<"Error: in JetTrackBackground, only jetindex 0 and 1 supported"<<endl; exit(1); }
     
     
     double dijetdphi = fabs(c->myjet.jtphi[0] - c->myjet.jtphi[1]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
-    if( dijetdphi < dijetdphicut ) continue;
+    if( fabs(dijetdphi) < dijetdphicut ) continue;
     // while(true)
     // {
     // jetindex++;
-    if( c->myjet.jtpt[0] > leadingjetpthigh ) continue;
-    if( c->myjet.jtpt[0] < leadingjetptlow ) continue;
-    if( c->myjet.jtpt[1] > subleadingjetpthigh ) continue;
-    if( c->myjet.jtpt[1] < subleadingjetptlow ) continue;
+    if( c->myjet.jtpt[leadindex] > leadingjetpthigh ) continue;
+    if( c->myjet.jtpt[leadindex] < leadingjetptlow ) continue;
+    if( c->myjet.jtpt[subleadindex] > subleadingjetpthigh ) continue;
+    if( c->myjet.jtpt[subleadindex] < subleadingjetptlow ) continue;
     
-    if( fabs(c->myjet.jteta[0]) > jetamax || fabs(c->myjet.jteta[0]) < jetamin ) continue;
-    if( fabs(c->myjet.jteta[1]) > jetamax || fabs(c->myjet.jteta[1]) < jetamin ) continue;
-    if ((c->myjet.trackMax[0]/c->myjet.jtpt[0])<0.01) continue;
-    if ((c->myjet.trackMax[1]/c->myjet.jtpt[1])<0.01) continue;
+    if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;
+    if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;
+    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;
+    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;
     // cout<<"hhere"<<endl;
     // cout<<"ihere"<<endl;
     // cout<<"ghere "<<fabs(c->myjet.jteta[1])<<" > "<<jetamax<<" ... "<<fabs(c->myjet.jteta[1])<<" < "<<jetamin<<endl;
@@ -478,7 +493,7 @@ TH2D * JetTrackBackground(int jetindex, double leadingjetptlow , double leadingj
       else
       {
         //if is PbPb Data
-        if(!(bakpcollarray[bakindex] && bakhbhearray[bakindex])) continue;
+        if(!(bakpcollarray[bakindex] && bakhbhearray[bakindex] && bakhltjet80[bakindex])) continue;
         // if(fabs(bakvzarray[]))
       }
       // cout<<"c"<<endl;
