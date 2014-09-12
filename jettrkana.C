@@ -163,22 +163,11 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(jentry);
-    // cout<<"gotentry "<<jentry<<endl;
-    // cout<<c->evt.hiBin<<endl; 
     hcent->Fill(c->evt.hiBin);
-    // if(jentry>10) exit(1);
-    if(c->evt.hiBin < centmin || c->evt.hiBin > centmax) continue;
-
-    //! jet cuts, vz range, more than 2 jettss, dijetdphi 7/8 pi, both jet |eta| < 2, pt range cuts, aj cuts
-    // cout<<mccommand<<endl;
-    // cout<<"selectEvent"<<endl;
-    // if(mccommand==0)
-    // {
-    // bool select = (c->skim.pHBHENoiseFilter || c->mc) && c->skim.pcollisionEventSelection;
     
-    // if(!select) continue; 
-    // if(!c->hlt.HLT_HIJet80_v1) continue; 
-    // }
+
+    // ### START Event Selection and quality cuts ###
+    if(c->evt.hiBin < centmin || c->evt.hiBin > centmax) continue;
     if(c->hasGenParticleTree)
     {
       //if is PbPb MC
@@ -190,9 +179,16 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
       if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter )) continue;
       // if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter && c->hlt.HLT_HIJet80_v1 )) continue;
     }
-    // cout<<"event selected"<<endl;
     if( fabs(c->evt.vz) > vzrange ) continue;
-    if( c->myjet.nref < 2 )         continue;
+    // ### END Event Selection and quality cuts ###
+    
+
+    
+
+
+
+    
+    // ### Find leading and subleading jets in |eta| < 2
     int leadindex = -1 , subleadindex = -1;
     bool foundleading = false;
     for(int i = 0 ; i < c->myjet.nref ; ++i)
@@ -216,63 +212,44 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     }
     if(leadindex < 0 || subleadindex < 0 ) continue; //Didn't find jet pair in |eta|<2
     
-    
-    
-    
+    // ### START et cuts ###
     double dijetdphi = fabs(c->myjet.jtphi[leadindex] - c->myjet.jtphi[subleadindex]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
-    // cout<< dijetdphi << " vs " << dijetdphicut << endl;
-    if( fabs(dijetdphi) < dijetdphicut ) continue;
-    // cout<<"dphicut "<<c->myjet.nref<<endl;
-    // int jetindex = -1;
-    // while(true)
-    // {
-    // cout<<"here"<<endl;
-    // jetindex++;
+    if( fabs(dijetdphi) < dijetdphicut ) continue;  // dphi cut
+    if( c->myjet.jtpt[leadindex] > leadingjetpthigh ) continue;       //lead pt cut
+    if( c->myjet.jtpt[leadindex] < leadingjetptlow ) continue;        //lead pt cut
+    if( c->myjet.jtpt[subleadindex] > subleadingjetpthigh ) continue; //sublead pt cut
+    if( c->myjet.jtpt[subleadindex] < subleadingjetptlow ) continue;  //sublead pt cut
+    if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;        //jet eta cut
+    if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;  //jet eta cut
+    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;         //trackmax cut
+    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;   //trackmax cut
+    float aj = (c->myjet.jtpt[leadindex] - c->myjet.jtpt[subleadindex]) / (c->myjet.jtpt[leadindex] + c->myjet.jtpt[subleadindex]);
+    if(aj < ajmin || aj > ajmax) continue;  //aj cut
+    // ### END jet cuts ###
+
+
+    
+    // ### Set which jet to correlate with , 0 = leading , 1 = subleadings
     int dojet = -1;
     if(jetindex==0) dojet = leadindex;
     else if(jetindex==1) dojet = subleadindex;
     else { cout<<"Error: in JetTrackSignal, only jetindex 0 and 1 supported"<<endl; exit(1); }
     
-
     
-    if( c->myjet.jtpt[leadindex] > leadingjetpthigh ) continue;
-    if( c->myjet.jtpt[leadindex] < leadingjetptlow ) continue;
-    if( c->myjet.jtpt[subleadindex] > subleadingjetpthigh ) continue;
-    if( c->myjet.jtpt[subleadindex] < subleadingjetptlow ) continue;
     
-    if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;
-    if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;
-    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;
-    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;
-    // if(jentry%1000==0) { cout<<"here"<<endl; break;}
-    
-    float aj = (c->myjet.jtpt[leadindex] - c->myjet.jtpt[subleadindex]) / (c->myjet.jtpt[leadindex] + c->myjet.jtpt[subleadindex]);
-    
-    if(aj < ajmin || aj > ajmax) continue;
     
     double jeteta = c->myjet.jteta[dojet];
     double jetphi = c->myjet.jtphi[dojet];
-    // cout<<"somewhere"<<endl;
-    // int ntrig = 1 ;
     
     hjeteta->Fill(c->myjet.jteta[dojet]);
     hjetphi->Fill(c->myjet.jtphi[dojet]);
     hjetdphi->Fill(dijetdphi);
     hjetpt->Fill(c->myjet.jtpt[dojet]);
-    
-
-    // for(int i = 0 ; i < ntrig ; ++i)
-    // {
     ntottrig += 1;
 
-    // cout<<ntrig<<" here"<<endl;
-    // cout<<c->track.nTrk<<" here"<<endl;
     for(int j = 0 ; j < c->track.nTrk ; ++j)
     {
-      // cout<<mytrackquality<<endl; //mytrackquality==0&&
-      // cout<<c->track.highPurity[j]<<endl; //mytrackquality==0&&
-      // cout<<(c->track.trkPtError[j]/c->track.trkPt[j]<0.1)<<endl; //mytrackquality==0&&
       if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
       {
         if(c->track.trkPt[j]>ptasshigh || c->track.trkPt[j]<ptasslow) continue;
@@ -287,9 +264,6 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
           deta = fabs(jeteta-c->track.trkEta[j]);
           dphi = fabs(jetphi-c->track.trkPhi[j]);
           if( dphi > pi ) dphi = 2*pi - dphi;
-          // float correction = c->getTrackCorrection(j);
-
-          
           // double effweight = c->track.trkPt[j]*correction;
           hJetTrackSignal->Fill(deta,dphi,effweight);
           hJetTrackSignal->Fill(-deta,dphi,effweight);
@@ -317,15 +291,8 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
       }
     }
     hcentpostcut->Fill(c->evt.hiBin);
-    // }
-    // cout<<"end"<<endl;
-    // }
-
-    // if(jentry>100000) break;
   }
   cout<<ntottrig<<endl;
-  // if( ntottrig != 0 ) hJetTrackSignal->Scale(1/ntottrig);
-  // c->ResetBooleans();
   return hJetTrackSignal;
 }
 
