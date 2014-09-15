@@ -6,6 +6,7 @@
 #include <TCanvas.h>
 #include <iostream>
 #include <math.h>
+#include "factorizedPtCorr.h"
 
 using namespace std;
 
@@ -159,6 +160,13 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
 
   // for (Long64_t jentry=0; jentry<10000;jentry++) {
   // for (Long64_t jentry=cent_index_start[centmin]; jentry<cent_index_start[centmax];jentry++) {
+
+  sampleType sType = kHIDATA;
+  InitCorrFiles(sType);   // Yen-Jie: assuming that we are working on Heavy Ion Data!!!!!!!!
+  cout <<"Loading HEAVY ION DATA correction tables !!"<<endl;
+  InitCorrHists(sType);
+
+
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
@@ -248,16 +256,20 @@ TH2D * JetTrackSignal(int jetindex, double leadingjetptlow , double leadingjetpt
     hjetpt->Fill(c->myjet.jtpt[dojet]);
     ntottrig += 1;
 
+    InitPosArrPbPb(c->evt.hiBin); // Initializes array with correct histogram position stored based on hiBin
+
     for(int j = 0 ; j < c->track.nTrk ; ++j)
     {
       if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
       {
         if(c->track.trkPt[j]>ptasshigh || c->track.trkPt[j]<ptasslow) continue;
 
-        float effweight = 1.0;
+        float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
+        float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
         float correction = 1.0;
         
         double deta = -99, dphi = -99;
+
         
         if(false) //! Dragos:
         {
