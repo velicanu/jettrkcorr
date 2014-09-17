@@ -43,15 +43,15 @@ void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string t
   cout<<Form("%s_%s_trkqaul%d_nmin%d_nmax%d_tptmin%d_tptmax%d_aptmin%d_aptmax%d_%d.root",tag.data(),whichjet.data(),trackqual,nmin,nmax,(int)pttrigmin,(int)pttrigmax,(int)ptassmin,(int)ptassmax,condor_iter)<<endl;
   TFile * outf = new TFile(Form("%s_%s_trkqaul%d_nmin%d_nmax%d_cmin%d_cmax%d_aj%d_%d_tptmin%d_tptmax%d_aptmin%d_aptmax%d_%d.root",tag.data(),whichjet.data(),trackqual,nmin,nmax,centmin,centmax,(int)(ajmin*10),(int)(ajmax*10),(int)pttrigmin,(int)pttrigmax,(int)ptassmin,(int)ptassmax,condor_iter),"recreate");
   
-	TH2D * ljtlead = JetTrackSignal    (0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
+	TH2D * ljtlead = JetTrackSignal    (condor_iter,0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
   
-	TH2D * ljtsubl = JetTrackSignal    (1, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
+	// TH2D * ljtsubl = JetTrackSignal    (condor_iter,1, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
 
-  cout<<ljtlead<<" "<<ljtsubl<<endl;
+  // cout<<ljtlead<<" "<<ljtsubl<<endl;
 
 
-  	TH2D * bakjtlead = JetTrackBackground    (0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
-  	TH2D * bakjtsubl = JetTrackBackground    (1, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
+  	TH2D * bakjtlead = JetTrackBackground    (condor_iter,0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
+  	// TH2D * bakjtsubl = JetTrackBackground    (condor_iter,1, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,doptweight,mccommand,jetamin,jetamax,15,pi78,whichjet);
     
     TH2D * ljtleadcorr = (TH2D*)ljtlead->Clone(Form("corr_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptassmin,(int)ptassmax,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)));
     ljtleadcorr->Divide(bakjtlead);
@@ -59,11 +59,11 @@ void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string t
     ljtleadcorr->GetXaxis()->SetRange(ljtleadcorr->GetXaxis()->FindBin(-4.0),ljtleadcorr->GetXaxis()->FindBin(4.0));
     ljtleadcorr->GetYaxis()->SetRange(ljtleadcorr->GetYaxis()->FindBin(-3.1415926/2.0),ljtleadcorr->GetYaxis()->FindBin(3*3.1415926/2.0));
 
-  	TH2D * ljtsublcorr = (TH2D*)ljtsubl->Clone(Form("corr_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptassmin,(int)ptassmax,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)));
-    ljtsublcorr->Divide(bakjtsubl);
-    ljtsublcorr->Scale(bakjtsubl->GetBinContent(bakjtsubl->FindBin(0,0)));
-    ljtsublcorr->GetXaxis()->SetRange(ljtsublcorr->GetXaxis()->FindBin(-4.0),ljtsublcorr->GetXaxis()->FindBin(4.0));
-    ljtsublcorr->GetYaxis()->SetRange(ljtsublcorr->GetYaxis()->FindBin(-3.1415926/2.0),ljtsublcorr->GetYaxis()->FindBin(3*3.1415926/2.0)); 
+  	// TH2D * ljtsublcorr = (TH2D*)ljtsubl->Clone(Form("corr_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptassmin,(int)ptassmax,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)));
+   //  ljtsublcorr->Divide(bakjtsubl);
+   //  ljtsublcorr->Scale(bakjtsubl->GetBinContent(bakjtsubl->FindBin(0,0)));
+   //  ljtsublcorr->GetXaxis()->SetRange(ljtsublcorr->GetXaxis()->FindBin(-4.0),ljtsublcorr->GetXaxis()->FindBin(4.0));
+   //  ljtsublcorr->GetYaxis()->SetRange(ljtsublcorr->GetYaxis()->FindBin(-3.1415926/2.0),ljtsublcorr->GetYaxis()->FindBin(3*3.1415926/2.0)); 
 	
 	// TH2D * ttsig = TrackTrackSignal(pttrigmin,pttrigmax,ptassmin,ptassmax,nmin,nmax,nmin,nmax);
   // TH2D * ttbak = TrackTrackBackground(pttrigmin,pttrigmax,ptassmin,ptassmax,nmin,nmax,nmin,nmax);
