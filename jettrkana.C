@@ -123,7 +123,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
 {
 
   c->ResetBooleans();
-  int parallelization = 1;
+  int parallelization = 40;
   cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  dotrkcorr=0;
@@ -299,7 +299,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     hjetpt->Fill(c->myjet.jtpt[dojet]);
     ntottrig += 1;
   	// cout<<c->evt.evt<<","<<c->myjet.jtpt[leadindex]<<endl;
-  	continue;
+  	// continue;
     c->hasTrackTree = true;
     c->GetEntry(jentry);
     InitPosArrPbPb(c->evt.hiBin);
@@ -360,7 +360,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   Long64_t nentries = c->GetEntries();
   Long64_t nbkentries = bk->GetEntries();
   
-  int parallelization = 20;
+  int parallelization = 40;
 
   c->ResetBooleans();
   
