@@ -18,7 +18,7 @@ cp corrFilePbPb_20140429.tar.gz $now
 cat runjettrk.condor | sed "s@log_flag@$now@g" | sed "s@dir_flag@$PWD/$now@g" | sed "s@user_flag@$USER@g" |  sed "s@arglist@$1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18} ${19} ${20} ${21} ${22} ${23}@g" | sed "s@transfer_filelist@$2,${23},runjettrk.exe,corrFilePbPb_20140429.tar.gz@g" | sed "s@njobs@$njobs@g" > $now/runjettrk.condor
 
 NAME="runjettrk.C"
-g++ $NAME $(root-config --cflags --libs) -Werror -Wall -O2 -o "${NAME/%.C/}.exe"
+g++ $NAME $(root-config --cflags --libs) -std=c++11 -Werror -Wall -O2 -o "${NAME/%.C/}.exe"
 cp runjettrk.exe $now
 
 fajmin=`bc <<< "${16}*10"`
