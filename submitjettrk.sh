@@ -1,6 +1,6 @@
 if [ $# -ne 23 ]
 then
-  echo "Usage: ./psort.sh <trackqual> <file-list> <tag> <nmin> <nmax> <pttrigmin> <pttrigmax> <ptassmin> <ptassmax> <leadingjetptlow> <leadingjetpthigh> <subleadingjetptlow> <subleadingjetpthigh> <centmin> <centmax> <ajmin> <ajmax> <doptweight> <mccommand> <jetetamin> <jetetamax> <whichjet> <bklist>"
+  echo "Usage: ./psort.sh <trackqual> <file-list> <tag> <nmin> <nmax> <pttrigmin> <pttrigmax> <ptassmin> <ptassmax> <leadingjetptlow> <leadingjetpthigh> <subleadingjetptlow> <subleadingjetpthigh> <centmin> <centmax> <ajmin> <ajmax> <dotrkcorr> <mccommand> <jetetamin> <jetetamax> <whichjet> <bklist>"
   echo "akPu3Calo akPu3PF akVs3Calo akVs3PF"
   exit 1
 fi
@@ -42,7 +42,7 @@ echo -e "\E[33m"
 echo
 echo cd $now
 echo
-echo | awk -v i=0 -v trkq=$1 -v flist=$2 -v tag=$3 -v nmin=$4 -v nmax=$5 -v pttrigmin=$6 -v pttrigmax=$7 -v ptassmin=$8 -v ptassmax=${9} -v leadingjetptlow=${10} -v leadingjetpthigh=${11} -v subleadingjetptlow=${12} -v subleadingjetpthigh=${13} -v centmin=${14} -v centmax=${15} -v ajmin=${16} -v ajmax=${17} -v doptweight=${18} -v mccommand=${19} -v jetetamin=${20} -v jetetamax=${21} -v whichjet=${22} -v bklist=${23} '{print "./runjettrk.exe "i" "trkq" "flist" "tag" "nmin" "nmax" "pttrigmin" "pttrigmax" "ptassmin" "ptassmax" "leadingjetptlow" "leadingjetpthigh" "subleadingjetptlow" "subleadingjetpthigh" "centmin" "centmax" "ajmin" "ajmax" "doptweight" "mccommand" "jetetamin" "jetetamax" "whichjet" "bklist" "}' 
+echo | awk -v i=0 -v trkq=$1 -v flist=$2 -v tag=$3 -v nmin=$4 -v nmax=$5 -v pttrigmin=$6 -v pttrigmax=$7 -v ptassmin=$8 -v ptassmax=${9} -v leadingjetptlow=${10} -v leadingjetpthigh=${11} -v subleadingjetptlow=${12} -v subleadingjetpthigh=${13} -v centmin=${14} -v centmax=${15} -v ajmin=${16} -v ajmax=${17} -v dotrkcorr=${18} -v mccommand=${19} -v jetetamin=${20} -v jetetamax=${21} -v whichjet=${22} -v bklist=${23} '{print "./runjettrk.exe "i" "trkq" "flist" "tag" "nmin" "nmax" "pttrigmin" "pttrigmax" "ptassmin" "ptassmax" "leadingjetptlow" "leadingjetpthigh" "subleadingjetptlow" "subleadingjetpthigh" "centmin" "centmax" "ajmin" "ajmax" "dotrkcorr" "mccommand" "jetetamin" "jetetamax" "whichjet" "bklist" "}' 
 echo 
 tput sgr0 
 # condor_submit $now/runjettrk.condor

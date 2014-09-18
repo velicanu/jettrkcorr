@@ -62,8 +62,8 @@ TH1D * hjtrkdphi;
 
 HiForest *c;
 HiForest *bk;
-TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
-TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
+TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
+TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
 
 int GetNTotTrig();
 
@@ -116,12 +116,12 @@ bool skipevent(double vzrange)
   return doskip;
 }
 
-TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
+TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
   int parallelization = 20;
   cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
-  if(mccommand==2)  doptweight=0;
+  if(mccommand==2)  dotrkcorr=0;
   TH2D::SetDefaultSumw2(true);
   c->LoadNoTrees();
   c->hasEvtTree = true;
@@ -293,7 +293,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
         float correction = 1.0;
         float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
         float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
-        if(doptweight==0) effweight = 1.0; //turns off tracking correction
+        if(dotrkcorr==0) effweight = 1.0; //turns off tracking correction
 
         double deta = -99, dphi = -99;
         
@@ -336,7 +336,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
 }
 
 
-TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int doptweight , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
+TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
   Long64_t nentries = c->GetEntries();
   Long64_t nbkentries = bk->GetEntries();
@@ -345,7 +345,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
 
   c->ResetBooleans();
   
-  if(mccommand==2)  doptweight=0;
+  if(mccommand==2)  dotrkcorr=0;
   TH2D::SetDefaultSumw2(true);
   bk->LoadNoTrees();
   // bk->hasTrackTree = true;
@@ -553,7 +553,7 @@ cout<<parallelization<<endl;
           // correction = 1.0;
           float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
           float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
-          if(doptweight==0) effweight = 1.0; //turns off tracking correction
+          if(dotrkcorr==0) effweight = 1.0; //turns off tracking correction
           
           hJetTrackBackground->Fill(deta,dphi,effweight);
           hJetTrackBackground->Fill(-deta,dphi,effweight);
