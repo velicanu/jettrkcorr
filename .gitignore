@@ -3,3 +3,10 @@ condor.txt
 hadd.txt
 *_2014_09_*
 runjettrk.exe
+*.png
+hadoopunmerged
+*.root
+merged
+uic
+unmerged
+laptopmerged.txt

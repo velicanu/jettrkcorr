@@ -156,7 +156,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   if(jetindex==0) //leading jet
   {
     //Hallie Binning
-    hJetTrackSignal = new TH2D(Form("signal_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());
+    // hJetTrackSignal = new TH2D(Form("signal_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());
     // hJetTrackSignal = new TH2D(Form("signal_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,50,-2*pi,2*pi);
     
     //Pelin Binning
@@ -167,7 +167,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   else if(jetindex==1) //subleading jet
   {
     //Hallie Binning
-    hJetTrackSignal = new TH2D(Form("signal_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());
+    // hJetTrackSignal = new TH2D(Form("signal_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",100,-5,5,100,-0.5*TMath::Pi(),1.5*TMath::Pi());
     // hJetTrackSignal = new TH2D(Form("signal_%s_subleadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)),";#Delta#eta;#Delta#phi",50,-5,5,50,-2*pi,2*pi);
     
     //Pelin Binning
@@ -290,12 +290,11 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
       {
         if(c->track.trkPt[j]>ptasshigh || c->track.trkPt[j]<ptasslow) continue;
 
-        // float effweight = 1.0;
         float correction = 1.0;
         float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
         float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
         
-        
+        // effweight = 1.0;
         double deta = -99, dphi = -99;
         
         if(false) //! Dragos:
@@ -554,10 +553,8 @@ cout<<parallelization<<endl;
           // correction = 1.0;
           float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
           float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
-        
+          // effweight = 1.0;
           
-          // double effweight = bk->track.trkPt[j]*correction;
-          // double effweight = 1.0;
           hJetTrackBackground->Fill(deta,dphi,effweight);
           hJetTrackBackground->Fill(-deta,dphi,effweight);
           hJetTrackBackground->Fill(deta,-dphi,effweight);
