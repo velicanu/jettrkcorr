@@ -293,8 +293,8 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
         float correction = 1.0;
         float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
         float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
-        
-        // effweight = 1.0;
+        if(doptweight==0) effweight = 1.0; //turns off tracking correction
+
         double deta = -99, dphi = -99;
         
         if(false) //! Dragos:
@@ -489,7 +489,7 @@ cout<<parallelization<<endl;
     cout<<"jetetaphi: "<<jeteta<<" "<<jetphi<<endl;
     // int ntrig = 1;
     int k = 0;
-    int statfactor = 10;
+    int statfactor = 20;
     int thisntries = 0;
     // for(int k = 0 ; k < statfactor ; ++k)
     // bool first = true;
@@ -553,7 +553,7 @@ cout<<parallelization<<endl;
           // correction = 1.0;
           float trkRMin = getTrkRMin(c->track.trkPhi[j], c->track.trkEta[j],c->myjet.nref,c->myjet.jtphi,c->myjet.jteta);
           float effweight = factorizedPtCorr(getPtBin(c->track.trkPt[j], sType), c->evt.hiBin, c->track.trkPt[j], c->track.trkPhi[j], c->track.trkEta[j], trkRMin, sType);
-          // effweight = 1.0;
+          if(doptweight==0) effweight = 1.0; //turns off tracking correction
           
           hJetTrackBackground->Fill(deta,dphi,effweight);
           hJetTrackBackground->Fill(-deta,dphi,effweight);
