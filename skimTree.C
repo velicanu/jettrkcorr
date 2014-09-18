@@ -10,7 +10,7 @@ void skimTree(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar
 {
    // Define the input file and HiForest
    HiForest *c = new HiForest(infname);
-    c->hasHltTree=0;
+   c->hasHltTree=0;
    c->hasPFTree=0;
    c->hasPhotonTree=0;
    c->hasTowerTree=0;
@@ -34,14 +34,15 @@ void skimTree(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar
    c->SetOutputFile(outfname);
 
    int filtered=0;
+
    // Main loop
    for (int i=0;i<c->GetEntries();i++)
    {
       c->GetEntry(i);
       if (i%1000==0) cout <<filtered<<" "<<i<<" / "<<c->GetEntries()<<endl;
-      //if (c->evt.hiBin>=20) continue;
-      int flag=0;
-      int flag2=0;
+      
+      int flag=0;    // # of jets with |eta|<2 and pt > 120
+      int flag2=0;   // # of jets with |eta|<2 and pt > 50
       for (int j=0;j<c->akVs3Calo.nref;j++) {
         if (fabs(c->akVs3Calo.jteta[j])>2) continue;
 	if (c->akVs3Calo.jtpt[j]>120) flag=1;
