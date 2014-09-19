@@ -7,12 +7,14 @@
 #include <iostream>
 #include <math.h>
 #include "factorizedPtCorr.h"
+#include <unordered_set>
 
 
 using namespace std;
 
-const double pi = 3.1415926;
-const double pi23 = 2.0 * pi / 3.0;
+// const double pi = 3.141592653589793238462643;
+const double pi = TMath::Pi();
+const double pi56 = 5.0 * pi / 6.0;
 double maxetatrg = 2.4;
 double maxetaass = 2.4;
 int ntottrig = 0;
@@ -59,11 +61,12 @@ TH1D * hjtrkphi;
 TH1D * hjtrkpt;
 TH1D * hjtrkdeta;
 TH1D * hjtrkdphi;
+std::unordered_set<int> visitedevents;
 
 HiForest *c;
 HiForest *bk;
-TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
-TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi23, string whichjet = "");
+TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi56, string whichjet = "");
+TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi56, string whichjet = "");
 
 int GetNTotTrig();
 
@@ -118,7 +121,9 @@ bool skipevent(double vzrange)
 
 TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
-  int parallelization = 20;
+
+  c->ResetBooleans();
+  int parallelization = 33;
   cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  dotrkcorr=0;
@@ -186,13 +191,33 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   // int n_entries_in_cent_range = cent_index_start[centmax] - cent_index_start[centmin];
 // cout<<parallelization<<endl;
   int increment = nentries/parallelization;
+  int stopentry = (condor_iter+1)*increment;
+  if(stopentry > nentries)
+  {
+    cout<<"FATAL ERROR: trying to run on more events than we have"<<endl; exit(1);
+  }
+  if((condor_iter+2)*increment > nentries) stopentry = nentries;
+
+  cout<<increment<<endl;
+  cout<<"start: "<<condor_iter*increment<<" to end "<<stopentry<<" of "<<nentries<<endl;
   // int increment = nentries;
   // for (Long64_t jentry=0; jentry<10000;jentry++) {
   // for (Long64_t jentry=cent_index_start[centmin]; jentry<cent_index_start[centmax];jentry++) {
-  for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
+  for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) {
+  // for (Long64_t jentry=0; jentry<nentries;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
-    if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
+    // if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(jentry);
+    auto search = visitedevents.find(c->evt.evt);
+    if(search != visitedevents.end()) {
+      cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
+      continue; // found duplicate
+    }
+    else // no duplicate found, add this to visited events
+    {
+      visitedevents.insert(c->evt.evt);
+    }
+
     hcent->Fill(c->evt.hiBin);
     
 
@@ -246,7 +271,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     }
     if(leadindex < 0 || subleadindex < 0 ) continue; //Didn't find jet pair in |eta|<2
     
-    // ### START et cuts ###
+    // ### START jet cuts ###
     double dijetdphi = fabs(c->myjet.jtphi[leadindex] - c->myjet.jtphi[subleadindex]);
     if( dijetdphi > pi ) dijetdphi = 2*pi - dijetdphi;
     if( fabs(dijetdphi) < dijetdphicut ) continue;  // dphi cut
@@ -256,8 +281,8 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     if( c->myjet.jtpt[subleadindex] < subleadingjetptlow ) continue;  //sublead pt cut
     if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;        //jet eta cut
     if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;  //jet eta cut
-    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;         //trackmax cut
-    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;   //trackmax cut
+    // if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;         //trackmax cut
+    // if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;   //trackmax cut
     float aj = (c->myjet.jtpt[leadindex] - c->myjet.jtpt[subleadindex]) / (c->myjet.jtpt[leadindex] + c->myjet.jtpt[subleadindex]);
     if(aj < ajmin || aj > ajmax) continue;  //aj cut
     // ### END jet cuts ###
@@ -281,6 +306,8 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     hjetdphi->Fill(dijetdphi);
     hjetpt->Fill(c->myjet.jtpt[dojet]);
     ntottrig += 1;
+  	// cout<<c->evt.evt<<","<<c->myjet.jtpt[leadindex]<<endl;
+  	// continue;
     c->hasTrackTree = true;
     c->GetEntry(jentry);
     InitPosArrPbPb(c->evt.hiBin);
@@ -341,7 +368,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   Long64_t nentries = c->GetEntries();
   Long64_t nbkentries = bk->GetEntries();
   
-  int parallelization = 20;
+  int parallelization = 33;
 
   c->ResetBooleans();
   
@@ -413,6 +440,7 @@ cout<<parallelization<<endl;
   for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
+	continue;
     // if(jentry>100) break;
     c->GetEntry(jentry);
     sigindex++;
@@ -486,7 +514,7 @@ cout<<parallelization<<endl;
     
     double jeteta = c->myjet.jteta[dojet];
     double jetphi = c->myjet.jtphi[dojet];
-    cout<<"jetetaphi: "<<jeteta<<" "<<jetphi<<endl;
+    // cout<<"jetetaphi: "<<jeteta<<" "<<jetphi<<endl;
     // int ntrig = 1;
     int k = 0;
     int statfactor = 20;

@@ -3,10 +3,12 @@
 #include <TH1D.h>
 #include <TNtuple.h>
 #include <iostream>
+#include <unordered_set>
+
 
 // Example of forest skim
 
-void skimTree(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar2014_0000CET_Track8_Jet21_0.root", char *outfname = "skim_Jet.root")
+void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar2014_0000CET_Track8_Jet21_0.root", char *outfname = "skim_Jet.root")
 {
   // Define the input file and HiForest
   HiForest *c = new HiForest(infname);
@@ -34,13 +36,26 @@ void skimTree(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar
   c->SetOutputFile(outfname);
 
   int filtered=0;
-
+  std::unordered_set<int> visitedevents;
   // Main loop
   for (int i=0;i<c->GetEntries();i++)
   {
     c->GetEntry(i);
     if (i%1000==0) cout <<filtered<<" "<<i<<" / "<<c->GetEntries()<<endl;
-    
+
+    auto search = visitedevents.find(c->evt.evt);
+    if(search != visitedevents.end()) {
+      cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
+      continue; // found duplicate
+    }
+    else // no duplicate found, add this to visited events
+    {
+      visitedevents.insert(c->evt.evt);
+    }
+
+
+
+
     int flag=0;    // # of jets with |eta|<2 and pt > 120
     int flag2=0;   // # of jets with |eta|<2 and pt > 50
     for (int j=0;j<c->akVs3Calo.nref;j++) {
@@ -57,3 +72,18 @@ void skimTree(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_LV6_12Mar
 
   delete c;
 }
+
+
+
+int main(int argc, char *argv[])
+{
+  if(argc != 3)
+  {
+    std::cout << "Usage: ./removeDuplicates.exe <input> <output>" << std::endl;
+    return 1;
+  }
+  removeDuplicates(argv[1], argv[2]);
+
+  return 0;
+}
+
