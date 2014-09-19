@@ -192,11 +192,12 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
 // cout<<parallelization<<endl;
   int increment = nentries/parallelization;
   cout<<increment<<endl;
+  cout<<"start: "<<condor_iter*increment<<" to end "<<(condor_iter+1)*increment<<" of "<<nentries<<endl;
   // int increment = nentries;
   // for (Long64_t jentry=0; jentry<10000;jentry++) {
   // for (Long64_t jentry=cent_index_start[centmin]; jentry<cent_index_start[centmax];jentry++) {
-  // for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
-  for (Long64_t jentry=0; jentry<nentries;jentry++) {
+  for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
+  // for (Long64_t jentry=0; jentry<nentries;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     // if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(jentry);
@@ -273,8 +274,8 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     if( c->myjet.jtpt[subleadindex] < subleadingjetptlow ) continue;  //sublead pt cut
     if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;        //jet eta cut
     if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;  //jet eta cut
-    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;         //trackmax cut
-    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;   //trackmax cut
+    // if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;         //trackmax cut
+    // if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;   //trackmax cut
     float aj = (c->myjet.jtpt[leadindex] - c->myjet.jtpt[subleadindex]) / (c->myjet.jtpt[leadindex] + c->myjet.jtpt[subleadindex]);
     if(aj < ajmin || aj > ajmax) continue;  //aj cut
     // ### END jet cuts ###
