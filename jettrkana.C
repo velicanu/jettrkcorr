@@ -191,12 +191,19 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   // int n_entries_in_cent_range = cent_index_start[centmax] - cent_index_start[centmin];
 // cout<<parallelization<<endl;
   int increment = nentries/parallelization;
+  int stopentry = (condor_iter+1)*increment;
+  if(stopentry > nentries)
+  {
+    cout<<"FATAL ERROR: trying to run on more events than we have"<<endl; exit(1);
+  }
+  if((condor_iter+2)*increment > nentries) stopentry = nentries;
+
   cout<<increment<<endl;
-  cout<<"start: "<<condor_iter*increment<<" to end "<<(condor_iter+1)*increment<<" of "<<nentries<<endl;
+  cout<<"start: "<<condor_iter*increment<<" to end "<<stopentry<<" of "<<nentries<<endl;
   // int increment = nentries;
   // for (Long64_t jentry=0; jentry<10000;jentry++) {
   // for (Long64_t jentry=cent_index_start[centmin]; jentry<cent_index_start[centmax];jentry++) {
-  for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
+  for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) {
   // for (Long64_t jentry=0; jentry<nentries;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     // if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
