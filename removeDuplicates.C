@@ -35,15 +35,16 @@ void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_L
   c->hasAkVs5PFJetTree=0;
   c->SetOutputFile(outfname);
 
+  long long int hundredmillion = 1000000000;
   int filtered=0;
-  std::unordered_set<int> visitedevents;
+  std::unordered_set<long long int> visitedevents;
   // Main loop
   for (int i=0;i<c->GetEntries();i++)
   {
     c->GetEntry(i);
     if (i%1000==0) cout <<filtered<<" "<<i<<" / "<<c->GetEntries()<<endl;
-
-    auto search = visitedevents.find(c->evt.evt);
+    long long int thisid = (hundredmillion*c->evt.run) + c->evt.evt; // format is run|0|evt 
+    auto search = visitedevents.find(thisid);
     if(search != visitedevents.end()) {
       cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
       filtered++;
@@ -51,7 +52,7 @@ void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_L
     }
     else // no duplicate found, add this to visited events
     {
-      visitedevents.insert(c->evt.evt);
+      visitedevents.insert(thisid);
     }
 
 
