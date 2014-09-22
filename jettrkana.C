@@ -8,6 +8,10 @@
 #include <math.h>
 #include "factorizedPtCorr.h"
 #include <unordered_set>
+#include <iostream>
+#include <fstream>
+#include <iomanip>  
+// #include <limits>
 
 
 using namespace std;
@@ -121,9 +125,13 @@ bool skipevent(double vzrange)
 
 TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
-
+  ofstream myfile;
+  myfile.open ("jetinfo.csv");
+  
+  
   c->ResetBooleans();
-  int parallelization = 33;
+  // int parallelization = 33;
+  int parallelization = 1;
   cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  dotrkcorr=0;
@@ -188,8 +196,6 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   // return hJetTrackSignal;
   
   double ntottrig = 0;
-  // int n_entries_in_cent_range = cent_index_start[centmax] - cent_index_start[centmin];
-// cout<<parallelization<<endl;
   int increment = nentries/parallelization;
   int stopentry = (condor_iter+1)*increment;
   if(stopentry > nentries)
@@ -200,13 +206,9 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
 
   cout<<increment<<endl;
   cout<<"start: "<<condor_iter*increment<<" to end "<<stopentry<<" of "<<nentries<<endl;
-  // int increment = nentries;
-  // for (Long64_t jentry=0; jentry<10000;jentry++) {
-  // for (Long64_t jentry=cent_index_start[centmin]; jentry<cent_index_start[centmax];jentry++) {
+  
+  myfile << std::setprecision(8)<< "Event Number,Jet pT,Jet phi,Jet eta,centrality,vz"<<endl;;
   for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) {
-  // for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
-    // if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(jentry);
     auto search = visitedevents.find(c->evt.evt);
     if(search != visitedevents.end()) {
@@ -311,6 +313,12 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     c->hasTrackTree = true;
     c->GetEntry(jentry);
     InitPosArrPbPb(c->evt.hiBin);
+    
+    myfile << c->evt.evt<<","<<c->myjet.jtpt[leadindex]<<","<<c->myjet.jtphi[leadindex]<<","<<c->myjet.jteta[leadindex]<<","<<c->evt.hiBin<<","<<c->evt.vz<<endl;
+    printf ("%d,%4.8f,%4.8f,%4.8f.%d,%4.8f,\n", c->evt.evt, c->myjet.jtpt[leadindex], c->myjet.jtphi[leadindex],c->myjet.jteta[leadindex],c->evt.hiBin,c->evt.vz);
+
+    continue;
+    
     for(int j = 0 ; j < c->track.nTrk ; ++j)
     {
       if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
@@ -359,6 +367,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     hcentpostcut->Fill(c->evt.hiBin);
   }
   cout<<ntottrig<<endl;
+  myfile.close();
   return hJetTrackSignal;
 }
 
@@ -368,7 +377,8 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   Long64_t nentries = c->GetEntries();
   Long64_t nbkentries = bk->GetEntries();
   
-  int parallelization = 33;
+  // int parallelization = 33;
+  int parallelization = 1;
 
   c->ResetBooleans();
   
@@ -417,7 +427,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
     exit(1);
   }
 
-  // return hJetTrackBackground;
+  return hJetTrackBackground;
   
   double ntottrig = 0;
   int n_entries_in_cent_range = cent_index_start[centmax] - cent_index_start[centmin];
@@ -440,7 +450,7 @@ cout<<parallelization<<endl;
   for (Long64_t jentry=condor_iter*increment; jentry<(condor_iter+1)*increment;jentry++) {
     // if(jentry%1000==0) cout<<jentry-cent_index_start[centmin]<<"/"<<n_entries_in_cent_range<<endl;
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
-	continue;
+	// continue;
     // if(jentry>100) break;
     c->GetEntry(jentry);
     sigindex++;
@@ -504,8 +514,8 @@ cout<<parallelization<<endl;
     
     if( fabs(c->myjet.jteta[leadindex]) > jetamax || fabs(c->myjet.jteta[leadindex]) < jetamin ) continue;
     if( fabs(c->myjet.jteta[subleadindex]) > jetamax || fabs(c->myjet.jteta[subleadindex]) < jetamin ) continue;
-    if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;
-    if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;
+    // if ((c->myjet.trackMax[leadindex]/c->myjet.jtpt[leadindex])<0.01) continue;
+    // if ((c->myjet.trackMax[subleadindex]/c->myjet.jtpt[subleadindex])<0.01) continue;
     // cout<<"hhere"<<endl;
     // cout<<"ihere"<<endl;
     // cout<<"ghere "<<fabs(c->myjet.jteta[1])<<" > "<<jetamax<<" ... "<<fabs(c->myjet.jteta[1])<<" < "<<jetamin<<endl;
@@ -572,10 +582,16 @@ cout<<parallelization<<endl;
         if(fabs(bk->track.trkEta[j])<2.4&&bk->track.highPurity[j]&&fabs(bk->track.trkDz1[j]/bk->track.trkDzError1[j])<3&&fabs(bk->track.trkDxy1[j]/bk->track.trkDxyError1[j])<3&&bk->track.trkPtError[j]/bk->track.trkPt[j]<0.1)
         {
           if(bk->track.trkPt[j]>ptasshigh || bk->track.trkPt[j]<ptasslow) continue;
-          double deta = fabs(jeteta-bk->track.trkEta[j]);
+          // double deta = fabs(jeteta-bk->track.trkEta[j]);
           // cout<<"aq"<<endl;
-          double dphi = fabs(jetphi-bk->track.trkPhi[j]);
-          if( dphi > pi ) dphi = 2*pi - dphi;
+          // double dphi = fabs(jetphi-bk->track.trkPhi[j]);
+          // if( dphi > pi ) dphi = 2*pi - dphi;
+		  
+		  double deta = jeteta - c->track.trkEta[j];
+          double dphi = jetphi - c->track.trkPhi[j];
+          if(dphi>(1.5*TMath::Pi()))  { dphi+= -2*TMath::Pi(); }
+          if(dphi<(-0.5*TMath::Pi())) { dphi+=  2*TMath::Pi(); }
+          
           
           // float correction = c->getTrackCorrection(j);
           // correction = 1.0;
@@ -584,11 +600,11 @@ cout<<parallelization<<endl;
           if(dotrkcorr==0) effweight = 1.0; //turns off tracking correction
           
           hJetTrackBackground->Fill(deta,dphi,effweight);
-          hJetTrackBackground->Fill(-deta,dphi,effweight);
-          hJetTrackBackground->Fill(deta,-dphi,effweight);
-          hJetTrackBackground->Fill(-deta,-dphi,effweight);
-          hJetTrackBackground->Fill(deta,(2*pi)-dphi,effweight);
-          hJetTrackBackground->Fill(-deta,(2*pi)-dphi,effweight);
+          // hJetTrackBackground->Fill(-deta,dphi,effweight);
+          // hJetTrackBackground->Fill(deta,-dphi,effweight);
+          // hJetTrackBackground->Fill(-deta,-dphi,effweight);
+          // hJetTrackBackground->Fill(deta,(2*pi)-dphi,effweight);
+          // hJetTrackBackground->Fill(-deta,(2*pi)-dphi,effweight);
         }
       }
       bk->hasTrackTree = false;

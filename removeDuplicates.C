@@ -46,6 +46,7 @@ void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_L
     auto search = visitedevents.find(c->evt.evt);
     if(search != visitedevents.end()) {
       cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
+      filtered++;
       continue; // found duplicate
     }
     else // no duplicate found, add this to visited events
@@ -56,18 +57,18 @@ void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_L
 
 
 
-    int flag=0;    // # of jets with |eta|<2 and pt > 120
-    int flag2=0;   // # of jets with |eta|<2 and pt > 50
-    for (int j=0;j<c->akVs3Calo.nref;j++) {
-      if (fabs(c->akVs3Calo.jteta[j])>2) continue;
-      if (c->akVs3Calo.jtpt[j]>120) flag=1;
-      if (c->akVs3Calo.jtpt[j]>50) flag2++;
-      if (flag>=1&&flag2>=2) break;
-    }
-    if (flag>=1&&flag2>=2) {
-      c->FillOutput(); // Write output forest
-      filtered++;
-    }  
+    // int flag=0;    // # of jets with |eta|<2 and pt > 120
+    // int flag2=0;   // # of jets with |eta|<2 and pt > 50
+    // for (int j=0;j<c->akVs3Calo.nref;j++) {
+    //   if (fabs(c->akVs3Calo.jteta[j])>2) continue;
+    //   if (c->akVs3Calo.jtpt[j]>120) flag=1;
+    //   if (c->akVs3Calo.jtpt[j]>50) flag2++;
+    //   if (flag>=1&&flag2>=2) break;
+    // }
+    // if (flag>=1&&flag2>=2) {
+    //   filtered++;
+    // }  
+    c->FillOutput(); // Write output forest
   }
 
   delete c;
