@@ -265,6 +265,8 @@ Float_t getTrkRMin(Float_t trkPhi, Float_t trkEta, Int_t nJt, Float_t jtPhi[], F
   if(nJt != 0){
     for(Int_t jtEntry = 0; jtEntry < nJt; jtEntry++){
       if(trkRMin > getDR(trkEta, trkPhi, jtEta[jtEntry], jtPhi[jtEntry]))
+		  // if(jtPt[jtEntry] < 50.0) continue;
+		  if(TMath::Abs(jtEta[jtEntry]) > 2.0) continue;
         trkRMin = getDR(trkEta, trkPhi, jtEta[jtEntry], jtPhi[jtEntry]);
     }
   }
