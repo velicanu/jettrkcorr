@@ -84,3 +84,17 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
    outf->Write();
    outf->Close();
 }
+
+
+int main(int argc, char *argv[])
+{
+  if(argc != 6)
+  {
+    // void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", char *outfname = "matched_Jet.root",int startEntry=0,int endEntry=0)
+    std::cout << "Usage: ./removeDuplicates.exe <infname> <mbname> <outfname> <startEntry> <endEntry>" << std::endl;
+    return 1;
+  }
+  correlateEventNtuple(argv[1], argv[2], argv[3], std::atoi(argv[4]), std::atoi(argv[5]));
+  return 0;
+}
+
