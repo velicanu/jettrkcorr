@@ -65,7 +65,7 @@ TH1D * hjtrkphi;
 TH1D * hjtrkpt;
 TH1D * hjtrkdeta;
 TH1D * hjtrkdphi;
-std::unordered_set<int> visitedevents;
+std::unordered_set<long long int> visitedevents;
 
 HiForest *c;
 HiForest *bk;
@@ -210,14 +210,17 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   myfile << std::setprecision(8)<< "Event Number,Jet pT,Jet phi,Jet eta,centrality,vz"<<endl;;
   for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) {
     c->GetEntry(jentry);
-    auto search = visitedevents.find(c->evt.evt);
+    if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
+
+    long long int thisid = (1000000000*c->evt.run) + c->evt.evt; // format is run|0|evt 
+    auto search = visitedevents.find(thisid);
     if(search != visitedevents.end()) {
       cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
       continue; // found duplicate
     }
     else // no duplicate found, add this to visited events
     {
-      visitedevents.insert(c->evt.evt);
+      visitedevents.insert(thisid);
     }
 
     hcent->Fill(c->evt.hiBin);
@@ -314,10 +317,10 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     c->GetEntry(jentry);
     InitPosArrPbPb(c->evt.hiBin);
     
-    myfile << c->evt.evt<<","<<c->myjet.jtpt[leadindex]<<","<<c->myjet.jtphi[leadindex]<<","<<c->myjet.jteta[leadindex]<<","<<c->evt.hiBin<<","<<c->evt.vz<<endl;
-    printf ("%d,%4.8f,%4.8f,%4.8f.%d,%4.8f,\n", c->evt.evt, c->myjet.jtpt[leadindex], c->myjet.jtphi[leadindex],c->myjet.jteta[leadindex],c->evt.hiBin,c->evt.vz);
+    // myfile << c->evt.evt<<","<<c->myjet.jtpt[leadindex]<<","<<c->myjet.jtphi[leadindex]<<","<<c->myjet.jteta[leadindex]<<","<<c->evt.hiBin<<","<<c->evt.vz<<endl;
+    // printf ("%d,%4.8f,%4.8f,%4.8f.%d,%4.8f,\n", c->evt.evt, c->myjet.jtpt[leadindex], c->myjet.jtphi[leadindex],c->myjet.jteta[leadindex],c->evt.hiBin,c->evt.vz);
 
-    continue;
+    // continue;
     
     for(int j = 0 ; j < c->track.nTrk ; ++j)
     {
