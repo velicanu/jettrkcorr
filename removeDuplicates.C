@@ -42,7 +42,8 @@ void removeDuplicates(char *infname = "../JetSample/hiForest_Jet80or95_GR_R_53_L
   {
     c->GetEntry(i);
     if (i%1000==0) cout <<filtered<<" "<<i<<" / "<<c->GetEntries()<<endl;
-    long long int thisid = (1000000000*c->evt.run) + c->evt.evt; // format is run|0|evt 
+    long long big = 1000000000;
+    long long int thisid = (big*c->evt.run) + c->evt.evt; // format is run|0|evt 
     auto search = visitedevents.find(thisid);
     if(search != visitedevents.end()) {
       cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
