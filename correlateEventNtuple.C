@@ -3,10 +3,11 @@
 #include <TH1D.h>
 #include <TMath.h>
 #include <TNtuple.h>
-#include <iostream>
+#include <fstream>
 #include <utility>
 #include <stdlib.h>
 #include <unordered_set>
+#include <sstream> 
 // #include <time.h> 
 
 // Example of forest skim
@@ -159,6 +160,11 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
   double ajmax = 1.0;
   // ### End jet cuts  ###
   
+  ofstream myfile;
+  std::stringstream myfilename; 
+  myfilename<<"mixevents_"<<iteration<<".csv";
+  myfile.open (myfilename.str());
+  // myfile << "Writing this to a file.\n";
   
   cout<<"Loading minbias hiforest... ";
   // Define the input file and HiForest
@@ -179,6 +185,8 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
   std::pair<int,double> * jetevents = new std::pair<int,double>[986669];
   std::vector<int> vjetindices;
   std::vector<int> vmbindices;
+  std::vector<int> vmbevt;
+  std::vector<int> vmbrun;
   std::vector<int> centralities;
   
   
@@ -189,6 +197,8 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
     d->evtTree->GetEntry(j);
     d->skimTree->GetEntry(j);
     centralities.push_back(d->evt.hiBin);
+    vmbevt.push_back(d->evt.evt);
+    vmbrun.push_back(d->evt.run);
     if (!(d->skim.pcollisionEventSelection && d->skim.pHBHENoiseFilter )) continue;
     myevents[nmb] = std::make_pair (j,d->evt.vz); //index vz
     vmbindices.push_back(j);
@@ -228,7 +238,6 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
     int lastvzinrange = findlastvz(myevents,vz,deltavz);
     int nMatched = 0;
     c->GetEntry(vjetindices[i]);
-    // cout<<c->evt.run<<","<<c->evt.evt<<endl;
     std::vector<int> tmp_eventstomix;
     for (int j = firstvzinrange; j <= lastvzinrange; ++j)
     {
@@ -241,11 +250,16 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
     for (int j = 0 ; j < (int)tmp_eventstomix.size() ; ++j)
     {
       entriestomix.insert(tmp_eventstomix[j]);
+      // cout<<c->evt.run<<","<<c->evt.evt<<","<<c->evt.hiBin<<","<<c->evt.vz<<endl;
+      
+      long long int big = 1000000000;
+      long long int thisid = (big*vmbrun[tmp_eventstomix[j] ]) + vmbevt[tmp_eventstomix[j] ];
+      myfile<<vjetindices[i]<<","<<thisid<<","<<endl;
       nMatched++;
-      if(nMatched>20) break;
+      if(nMatched>19) break;
     }
     hnmatched->Fill(nMatched);
-    // break;
+    // if(i > 2) break;
   }
   cout<<"done."<<endl;
   
@@ -254,7 +268,7 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
   for (int j = 0; j < nmbentries; ++j)
   {
     auto search = entriestomix.find(j);
-    if(j%1000==0) 
+    if(j%10000==0) 
       cout<<j<<"/"<<nmbentries<<" filled: "<<nfilled<<endl;
     if(search == entriestomix.end())
     {
@@ -269,6 +283,12 @@ void correlateEventNtuple(char *infname = "0.root", char *mbname = "mb.root", ch
   
   delete c;
   delete d;
+  
+  // HiForest *d = new HiForest(outfname);
+  // turnOffBranches(d);
+  // d->SetOutputFile("/export/d00/scratch/dav2105/testsort.root");
+
+  myfile.close();
   cout<<"Program completed succesfully."<<endl;
 }
 

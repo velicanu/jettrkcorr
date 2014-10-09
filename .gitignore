@@ -2,7 +2,7 @@ HiForestAnalysis
 condor.txt
 hadd.txt
 *_2014_09_*
-runjettrk.exe
+*.exe
 *.png
 hadoopunmerged
 *.root
@@ -10,7 +10,6 @@ merged
 uic
 unmerged
 laptopmerged.txt
-removeDuplicates.exe
 FullOfficialReco_PbPbData_mini_ntuple_v1.txt
 parallel40.txt
 .~lock.jetinfo.csv#
@@ -21,8 +20,11 @@ log0.csv
 log0.csv~
 pix.tgz
 reclean.txt
-skimTree.exe
 test.txt
-correlateEventNtuple.exe
 *_2014_10_*
 oldcorrFilePbPb_20140429.tar.gz
+makebackgroudns
+makembtrims
+manymb.txt
+matchedfiles.txt
+moremb.txt
