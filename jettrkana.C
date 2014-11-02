@@ -26,12 +26,12 @@ int ntottrig = 0;
 int cent_index_start[41];
 int mytrackquality = 0;
 int sigcentarray[100000];
-int bakcentarray[100000];
+int bakcentarray[987198];
 float sigvzarray[100000];
 float bakvzarray[100000];
-bool bakpcollarray[100000];
-bool bakhbhearray[100000];
-bool bakhltjet80[100000];
+bool bakpcollarray[987198];
+bool bakhbhearray[987198];
+bool bakhltjet80[987198];
 sampleType sType = kHIDATA;
 
 TH1D * hcent;
@@ -62,17 +62,20 @@ TH1D * hjetpt;
 TH1D * hjetdphi;
 
 TH1D * hjtrketa;
+TH1D * hjtrketanocorr;
 TH1D * hjtrkphi;
 TH1D * hjtrkpt;
 TH1D * hjtrkdeta;
 TH1D * hjtrkdphi;
 
 TH1D * hsigvz;
+TH1D * hsigcent;
 TH1D * hsigvz2;
 TH1D * hmixvz;
 TH1D * hmixdvz;
 TH1D * hmixtrkpt;
 TH1D * hmixtrketa;
+TH1D * hmixtrketanocorr;
 TH1D * hmixtrkphi;
 TH1D * hmixcent;
 TH1D * hmixdcent; 
@@ -89,7 +92,7 @@ std::vector<long long int> backgroundids;
 HiForest *c;
 HiForest *bk;
 TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi56, string whichjet = "");
-TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi56, string whichjet = "");
+TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange = 15.0, double dijetdphicut = pi56, string whichjet = "", double dvz = 0.2);
 
 int GetNTotTrig();
 
@@ -217,9 +220,10 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
   bk->LoadNoTrees();
   bk->hasEvtTree = true;
   bk->hasSkimTree = true;
-  bk->hasTrackTree = true;
+  // bk->hasTrackTree = true;
   for(int i = 0 ; i < nbkentries ; ++i)
   {
+		if(i%10000==0) cout<<i<<"/"<<nbkentries<<endl;
     bk->GetEntry(i);
     bakcentarray[i]=bk->evt.hiBin;
     bakvzarray[i]=bk->evt.vz;
@@ -243,8 +247,8 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
 
 TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
 {
-  ofstream myfile;
-  myfile.open ("jetinfo.csv");
+  // ofstream myfile;
+  // myfile.open ("jetinfo.csv");
   
   
   c->ResetBooleans();
@@ -272,7 +276,8 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   
   hjetdphi    = new TH1D(Form("hjet%d_dphi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#Delta#phi",40,0,TMath::Pi());
 
-  hjtrketa    = new TH1D(Form("hj%d_trketa_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",80,-4,4);
+  hjtrketa    = new TH1D(Form("hj%d_trketa_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",100,-2.5,2.5);
+  hjtrketanocorr    = new TH1D(Form("hj%d_trketanocorr_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",100,-2.5,2.5);
   hjtrkphi    = new TH1D(Form("hj%d_trkphi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#phi",80,-TMath::Pi(),TMath::Pi());
   hjtrkpt    = new TH1D(Form("hj%d_trkpt_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";p_{T}",80,0,ptasshigh*2);
 
@@ -280,6 +285,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   hjtrkdphi    = new TH1D(Form("hj%d_trkdphi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#phi",80,0,TMath::Pi());
 
   hsigvz = new TH1D("hsigvz",";vz;",100,-16,16);
+  hsigcent = new TH1D("hsigcent",";vz;",200,0,200);
 
   // Long64_t nentries = c->GetEntries();
   // Long64_t nbytes = 0, nb = 0;
@@ -391,6 +397,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     c->GetEntry(vjetindices[jentry]);
     InitPosArrPbPb(c->evt.hiBin);
     hsigvz->Fill(c->evt.vz);
+    hsigcent->Fill(c->evt.hiBin);
     for(int j = 0 ; j < c->track.nTrk ; ++j)
     {
       if(fabs(c->track.trkEta[j])<2.4&&c->track.highPurity[j]&&fabs(c->track.trkDz1[j]/c->track.trkDzError1[j])<3&&fabs(c->track.trkDxy1[j]/c->track.trkDxyError1[j])<3&&c->track.trkPtError[j]/c->track.trkPt[j]<0.1)
@@ -427,6 +434,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
           hJetTrackSignal->Fill(deta,dphi, effweight);
         }
         hjtrketa->Fill(c->track.trkEta[j],effweight);
+        hjtrketanocorr->Fill(c->track.trkEta[j]);
         hjtrkphi->Fill(c->track.trkPhi[j],effweight);
         hjtrkpt->Fill(c->track.trkPt[j],effweight);
         hjtrkdeta->Fill(deta);
@@ -439,12 +447,12 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
     hcentpostcut->Fill(c->evt.hiBin);
   }
   cout<<ntottrig<<endl;
-  myfile.close();
+  // myfile.close();
   return hJetTrackSignal;
 }
 
 
-TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet)
+TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow , double leadingjetpthigh , double subleadingjetptlow , double subleadingjetpthigh , double ptasslow , double ptasshigh, int centmin, int centmax, float ajmin , float ajmax , int dotrkcorr , int mccommand , double jetamin , double jetamax , double vzrange, double dijetdphicut, string whichjet, double dvz)
 {
 
   //### Start Histogram Definitions ###
@@ -452,7 +460,8 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   hsigvz2 = new TH1D("hsigvz2",";vz;",100,-16,16);
   hmixdvz = new TH1D("hmixdvz",";#Deltavz;",100,-1,1);
   hmixtrkpt = new TH1D("hmixtrkpt",";trkPt;",80,0,ptasshigh*2);
-  hmixtrketa = new TH1D("hmixtrketa",";trkEta;",80,-4,4);
+  hmixtrketa = new TH1D("hmixtrketa",";trkEta;",100,-2.5,2.5);
+  hmixtrketanocorr = new TH1D("hmixtrketanocorr",";trkEta;",100,-2.5,2.5);
   hmixtrkphi = new TH1D("hmixtrkphi",";trkPhi;",80,-TMath::Pi(),TMath::Pi());
   hmixcent = new TH1D("hmixcent",";hiBin;",200,0,200);
   hmixdcent = new TH1D("hmixdcent",";#DeltahiBin;",5,0,5);
@@ -562,11 +571,13 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   //   pairs[whichset].insert(mixevents[i][1]);
   // }
   // exit(1);
+	int currentbackindex = 0;
   for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) 
   {
-    if(jentry%1==0) cout<<jentry<<"/"<<nentries<<endl;
+    // if(jentry%100==0) 
+		cout<<jentry<<"/"<<nentries<<endl;
     c->GetEntry(vjetindices[jentry]);
-    cout<<mixevents[nextindex][0]<<" "<<vjetindices[jentry]<<endl;
+    // cout<<mixevents[nextindex][0]<<" "<<vjetindices[jentry]<<endl;
     std::unordered_set<long long int> tempset;
     int tempindex = nextindex;
     while(true)
@@ -622,27 +633,32 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
     int statfactor = 20;
     njetsevts+=1.0;
     hsigvz2->Fill(c->evt.vz);
+    // for(int backindex = 0 ; backindex < nbkentries ; ++backindex)
+		
     for(int backindex = 0 ; backindex < nbkentries ; ++backindex)
     {
       if(k>=statfactor) break;
-      ntries+=1.0;
-      if((sigcentarray[vjetindices[jentry]]-bakcentarray[backindex])!=0) continue;
-      if(fabs(sigvzarray[vjetindices[jentry]] - bakvzarray[backindex])>0.2) continue;
-      auto search = tempset.find(backgroundids[backindex]);
+      currentbackindex = ( currentbackindex + 1 ) % nbkentries;
+			ntries+=1.0;
+      if(abs((sigcentarray[vjetindices[jentry]]-bakcentarray[currentbackindex]))>5) continue;
+      if(fabs(sigvzarray[vjetindices[jentry]] - bakvzarray[currentbackindex])>dvz) continue;
       // cout<<"searching for: "<<backgroundids[backindex]<<endl;
-      if(search == tempset.end()) continue;
-      bk->GetEntry(backindex);
+      
+			//! fancy part turned off
+      // auto search = tempset.find(backgroundids[backindex]);
+			// if(search == tempset.end()) continue;
+      bk->GetEntry(currentbackindex);
 
       if(c->evt.run == bk->evt.run && c->evt.evt == bk->evt.evt) continue; //same event
       if((bk->genParticleTree != 0))
       {
         //if is PbPb MC
-        if(!bakpcollarray[backindex]) continue;
+        if(!bakpcollarray[currentbackindex]) continue;
       }
       else
       {
         //if is PbPb Data
-        if(!(bakpcollarray[backindex] && bakhbhearray[backindex] )) continue;
+        if(!(bakpcollarray[currentbackindex] && bakhbhearray[currentbackindex] )) continue;
       }
       k++;
       ntottrig += 1;
@@ -651,7 +667,11 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
       hmixdvz->Fill(c->evt.vz - bk->evt.vz);
       hmixcent->Fill(bk->evt.hiBin);
       hmixdcent->Fill(c->evt.hiBin - bk->evt.hiBin); 
+      
       // cout<<bk->evt.run<<","<<bk->evt.evt<<","<<bk->evt.hiBin<<","<<bk->evt.vz<<endl;
+      int thisntracks = 0;
+      // cout<<"=============="<<endl;
+      // cout<<"trkPt[j]"<<","<<"trkPhi[j]"<<","<<"trkEta[j]"<<","<<"effweight"<<endl;
       for(int j = 0 ; j < bk->track.nTrk ; ++j)
       {
         if(fabs(bk->track.trkEta[j])<2.4&&bk->track.highPurity[j]&&fabs(bk->track.trkDz1[j]/bk->track.trkDzError1[j])<3&&fabs(bk->track.trkDxy1[j]/bk->track.trkDxyError1[j])<3&&bk->track.trkPtError[j]/bk->track.trkPt[j]<0.1)
@@ -666,11 +686,17 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
           if(dotrkcorr==0) effweight = 1.0; //turns off tracking correction
           hmixtrkpt->Fill(bk->track.trkPt[j],effweight);
           hmixtrketa->Fill(bk->track.trkEta[j],effweight);
+          hmixtrketanocorr->Fill(bk->track.trkEta[j]);
           hmixtrkphi->Fill(bk->track.trkPhi[j],effweight);
           hJetTrackBackground->Fill(deta,dphi,effweight);
+          // cout<<bk->track.trkPt[j]<<","<<bk->track.trkPhi[j]<<","<<bk->track.trkEta[j]<<","<<effweight<<endl;
+          thisntracks++;
         }
       }
-      bk->hasTrackTree = false;
+      // cout<<"number of tracks = " <<thisntracks<<endl;
+      // exit(1);
+
+      // bk->hasTrackTree = false;
     }
     // cout<<k<<endl;
   }

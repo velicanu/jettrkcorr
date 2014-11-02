@@ -2,7 +2,7 @@
 #include <fstream>
 
 // void runcorr(int condor_iter, int trackqual, string flist = "", string tag = "", int nmin = 220, int nmax = 1000, float pttrigmin = 1, float pttrigmax = 2, float ptassmin = 1, float ptassmax = 2)
-void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string tag = "", int nmin = 220, int nmax = 1000, float pttrigmin = 1, float pttrigmax = 2, float ptassmin = 1, float ptassmax = 2, float leadingjetptlow = 100, float leadingjetpthigh = 300 , float subleadingjetptlow = 50, float subleadingjetpthigh = 100, int centmin = 0, int centmax = 40, float ajmin = 0.0, float ajmax = 1.0 , int dotrkcorr = 0, int mccommand = 0, float jetamin = 0.0, float jetamax = 2.0, string whichjet = "", string bklist = "")
+void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string tag = "", int nmin = 220, int nmax = 1000, float pttrigmin = 1, float pttrigmax = 2, float ptassmin = 1, float ptassmax = 2, float leadingjetptlow = 100, float leadingjetpthigh = 300 , float subleadingjetptlow = 50, float subleadingjetpthigh = 100, int centmin = 0, int centmax = 40, float ajmin = 0.0, float ajmax = 1.0 , int dotrkcorr = 0, int mccommand = 0, float jetamin = 0.0, float jetamax = 2.0, string whichjet = "", string bklist = "", int dvz = 2)
 {
   float pi78 = 5.0*TMath::Pi()/6.0;
   cout<<"runjettrk.C whichjet: "<<whichjet<<endl;
@@ -49,8 +49,8 @@ void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string t
 
   // cout<<ljtlead<<" "<<ljtsubl<<endl;
 
-
-  	TH2D * bakjtlead = JetTrackBackground    (condor_iter,0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,dotrkcorr,mccommand,jetamin,jetamax,15,pi78,whichjet);
+    double fdvz = dvz / 10.0;
+  	TH2D * bakjtlead = JetTrackBackground    (condor_iter,0, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,dotrkcorr,mccommand,jetamin,jetamax,15,pi78,whichjet,fdvz);
   	// TH2D * bakjtsubl = JetTrackBackground    (condor_iter,1, leadingjetptlow, leadingjetpthigh , subleadingjetptlow , subleadingjetpthigh , ptassmin , ptassmax, centmin, centmax,ajmin,ajmax,dotrkcorr,mccommand,jetamin,jetamax,15,pi78,whichjet);
     
     TH2D * ljtleadcorr = (TH2D*)ljtlead->Clone(Form("corr_%s_leadingjet%d_%d_ass%d_%d_cmin%d_cmax%d_ajmin%d_ajmax%d",whichjet.data(),(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptassmin,(int)ptassmax,centmin,centmax,(int)(ajmin*100),(int)(ajmax*100)));
@@ -87,12 +87,12 @@ void runcorr(int condor_iter = 0, int trackqual = 0, string flist = "", string t
 
 int main(int argc, char *argv[])
 {
-  if(argc != 25)
+  if(argc != 26)
   {
-    std::cout << "Usage: runcorr <condor_iter> <trackqual> <file-list> <tag> <nmin> <nmax> <pttrigmin> <pttrigmax> <ptassmin> <ptassmax> <leadingjetptlow> <leadingjetpthigh> <subleadingjetptlow> <subleadingjetpthigh> <centmin> <centmax> <ajmin> <ajmax> <dotrkcorr> <mccommand> <jetetamin> <jetetamax> <whichjet> <bklist>" << std::endl;
+    std::cout << "Usage: runcorr <condor_iter> <trackqual> <file-list> <tag> <nmin> <nmax> <pttrigmin> <pttrigmax> <ptassmin> <ptassmax> <leadingjetptlow> <leadingjetpthigh> <subleadingjetptlow> <subleadingjetpthigh> <centmin> <centmax> <ajmin> <ajmax> <dotrkcorr> <mccommand> <jetetamin> <jetetamax> <whichjet> <bklist> <dvz>" << std::endl;
     return 1;
   }
-  runcorr(std::atoi(argv[1]), std::atoi(argv[2]), argv[3], argv[4], std::atoi(argv[5]), std::atoi(argv[6]), std::atof(argv[7]), std::atof(argv[8]), std::atof(argv[9]), std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12]), std::atof(argv[13]), std::atof(argv[14]), std::atoi(argv[15]), std::atoi(argv[16]), std::atof(argv[17]), std::atof(argv[18]), std::atoi(argv[19]), std::atoi(argv[20]), std::atof(argv[21]), std::atof(argv[22]), argv[23],argv[24]);
+  runcorr(std::atoi(argv[1]), std::atoi(argv[2]), argv[3], argv[4], std::atoi(argv[5]), std::atoi(argv[6]), std::atof(argv[7]), std::atof(argv[8]), std::atof(argv[9]), std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12]), std::atof(argv[13]), std::atof(argv[14]), std::atoi(argv[15]), std::atoi(argv[16]), std::atof(argv[17]), std::atof(argv[18]), std::atoi(argv[19]), std::atoi(argv[20]), std::atof(argv[21]), std::atof(argv[22]), argv[23],argv[24],std::atoi(argv[25]));
 
   return 0;
 }
