@@ -231,7 +231,7 @@ void InitPosArrPbPb(Int_t hiBin)
 Int_t getPtBin(Float_t pt, sampleType sType = kHIDATA)
 {
   if(pt < .50 || pt > 1000000){
-    std::cout << "getPtBin: pt outside of acceptable range; check input" << std::endl;
+    std::cout << "getPtBin: pt = "<< pt <<" outside of acceptable range; check input" << std::endl;
     return -1;
   }
 
@@ -272,7 +272,7 @@ Float_t getTrkRMin(Float_t trkPhi, Float_t trkEta, Int_t nJt, Float_t jtPhi[], F
       }
     }
   }
-
+  // if(trkRMin > 198) 
   return trkRMin;
 }
 
@@ -280,17 +280,17 @@ Float_t getTrkRMin(Float_t trkPhi, Float_t trkEta, Int_t nJt, Float_t jtPhi[], F
 Float_t getEffCorr(Int_t corrBin, Int_t hiBin, Float_t pt, Float_t phi, Float_t eta, Float_t rmin, sampleType sType = kHIDATA)
 {
   Float_t effCorr = 1;
-
+  bool hasR = (rmin < 198);
   if(sType == kHIDATA || sType == kHIMC){
     effCorr = effCorr*(VsCalocent_p[corrBin]->GetBinContent(VsCalocent_p[corrBin]->FindBin(hiBin)));
     effCorr = effCorr*(VsCalophiEta_p[corrBin]->GetBinContent(VsCalophiEta_p[corrBin]->FindBin(phi, eta)));
     effCorr = effCorr*(VsCalopt_p[corrBin]->GetBinContent(VsCalopt_p[corrBin]->FindBin(pt)));
-    effCorr = effCorr*(VsCalodelR_p[corrBin]->GetBinContent(VsCalodelR_p[corrBin]->FindBin(rmin)));
+    if(hasR) effCorr = effCorr*(VsCalodelR_p[corrBin]->GetBinContent(VsCalodelR_p[corrBin]->FindBin(rmin)));
   }
   else if(sType == kPPDATA || kPPMC){
     effCorr = effCorr*(CalophiEta_p[corrBin]->GetBinContent(CalophiEta_p[corrBin]->FindBin(phi, eta)));
     effCorr = effCorr*(Calopt_p[corrBin]->GetBinContent(Calopt_p[corrBin]->FindBin(pt)));
-    effCorr = effCorr*(CalodelR_p[corrBin]->GetBinContent(CalodelR_p[corrBin]->FindBin(rmin)));
+    if(hasR) effCorr = effCorr*(CalodelR_p[corrBin]->GetBinContent(CalodelR_p[corrBin]->FindBin(rmin)));
   }
 
   return effCorr;
@@ -301,16 +301,17 @@ Float_t getFakeCorr(Int_t corrBin, Int_t hiBin, Float_t pt, Float_t phi, Float_t
 {
   Float_t fakeCorr = 0;
 
+  bool hasR = (rmin < 198);
   if(sType == kHIDATA || sType == kHIMC){
     fakeCorr = fakeCorr + (FakeVsCalocent_p[corrBin]->GetBinContent(FakeVsCalocent_p[corrBin]->FindBin(hiBin)));
     fakeCorr = fakeCorr + (FakeVsCalophiEta_p[corrBin]->GetBinContent(FakeVsCalophiEta_p[corrBin]->FindBin(phi, eta)));
     fakeCorr = fakeCorr + (FakeVsCalopt_p[corrBin]->GetBinContent(FakeVsCalopt_p[corrBin]->FindBin(pt)));
-    fakeCorr = fakeCorr + (FakeVsCalodelR_p[corrBin]->GetBinContent(FakeVsCalodelR_p[corrBin]->FindBin(rmin)));
+    if(hasR) fakeCorr = fakeCorr + (FakeVsCalodelR_p[corrBin]->GetBinContent(FakeVsCalodelR_p[corrBin]->FindBin(rmin)));
   }
   else if(sType == kPPDATA || kPPMC){
     fakeCorr = fakeCorr + (FakeCalophiEta_p[corrBin]->GetBinContent(FakeCalophiEta_p[corrBin]->FindBin(phi, eta)));
     fakeCorr = fakeCorr + (FakeCalopt_p[corrBin]->GetBinContent(FakeCalopt_p[corrBin]->FindBin(pt)));
-    fakeCorr = fakeCorr + (FakeCalodelR_p[corrBin]->GetBinContent(FakeCalodelR_p[corrBin]->FindBin(rmin)));
+    if(hasR) fakeCorr = fakeCorr + (FakeCalodelR_p[corrBin]->GetBinContent(FakeCalodelR_p[corrBin]->FindBin(rmin)));
   }
 
   return fakeCorr;
