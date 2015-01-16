@@ -67,17 +67,23 @@ TH2D *sidebandSubtraction(TH2D *hInput, char *outputName="hTemp", double minEta 
 
 void sidebandSubtraction()
 {
-   TFile *_file1 = new TFile("Data2011_Mixed_NewEff_trkPtCut1_Sept25.root");
+   // TFile *_file1 = new TFile("Data2011_Mixed_NewEff_trkPtCut1_Sept25.root");
+   TFile *_file1 = new TFile("Data2011_Mixed_NewEff_trkPtCut1_Oct3.root");
    TH2D *hallieNew = (TH2D*)_file1->Get("hists_hJetTrackSignalBackgroundCent0_Cent10_Pt100_Pt300_TrkPt1_TrkPt2");
    TH2D *hallieMix = (TH2D*)_file1->Get("hists_hJetTrackMECent0_Cent10_Pt100_Pt300_TrkPt1_TrkPt2");
  
    TCanvas *cRatio = new TCanvas("cRatio","signal / ME", 600,600);
    TH2D *hRatio = (TH2D*)hallieNew->Clone("hRatio");
    hRatio->Divide(hallieMix);
-   //hRatio->SetAxisRange(-3,3,"x");
+   hRatio->SetAxisRange(-3,3,"x");
    hRatio->Draw("surf1");
 
-   TCanvas *cProjectionX = new TCanvas("cProjectionX","signal / ME", 600,600);
+   TCanvas *cSideSub = new TCanvas("cSideSub","sideband subtracted", 600,600);
    TH2D *hBckSubtracted = sidebandSubtraction(hRatio,"hBckSubtracted",1.5,3.0);  
    hBckSubtracted->Draw("surf1");
+	 
+	 TCanvas *cProjectionX = new TCanvas("cProjectionX","deta projection", 600,600);
+   TH1D *hBckSubtractedx = hBckSubtracted->ProjectionX();  
+   hBckSubtractedx->Draw();
+	 
 }

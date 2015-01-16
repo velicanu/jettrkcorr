@@ -103,19 +103,19 @@ bool rejectevent(int centmin, int centmax, double vzrange, double dijetdphicut, 
   {
     
     // ### START Event Selection and quality cuts ###
-    if(c->evt.hiBin < centmin || c->evt.hiBin >= centmax) continue;
+    // if(c->evt.hiBin < centmin || c->evt.hiBin >= centmax) continue;
     if(c->hasGenParticleTree)
     {
       //if is PbPb MC
-      if(!c->skim.pcollisionEventSelection) continue;
+      // if(!c->skim.pcollisionEventSelection) continue;
     }
     else
     {
       //if is PbPb Data
-      if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter )) continue;
+      // if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter )) continue;
       // if(!(c->skim.pcollisionEventSelection && c->skim.pHBHENoiseFilter && c->hlt.HLT_HIJet80_v1 )) continue;
     }
-    if( fabs(c->evt.vz) > vzrange ) continue;
+    // if( fabs(c->evt.vz) > vzrange ) continue;
     // ### END Event Selection and quality cuts ###    
     // ### Find leading and subleading jets in |eta| < 2
     int leadindex = -1 , subleadindex = -1;
@@ -172,15 +172,15 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
   // c = new HiForest(infname,"forest",cPbPb);
 
   // bk= new HiForest(bkfname,"forest2",cPPb,0,whichjet);
-  c = new HiForest(infname,"forest1",cPPb,0,whichjet);
+  c = new HiForest(infname,"forest1",cPP,0,whichjet);
   // bk = c;
   
   Long64_t nentries = c->GetEntries();
 
   
-  InitCorrFiles(sType);   // Yen-Jie: assuming that we are working on Heavy Ion Data!!!!!!!!
-  cout <<"Loading HEAVY ION DATA correction tables !!"<<endl;
-  InitCorrHists(sType);
+  //InitCorrFiles(sType);   // Yen-Jie: assuming that we are working on Heavy Ion Data!!!!!!!!
+  // cout <<"Loading HEAVY ION DATA correction tables !!"<<endl;
+  //InitCorrHists(sType);
 
   // ### Some jet cuts ###
   double leadingjetpthigh = 300;
@@ -198,13 +198,14 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
 
   // ### End jet cuts  ###
 
-  c->LoadNoTrees();
-  c->hasSkimTree = true;
-  c->hasEvtTree = true;
-  c->hasAkVs3CaloJetTree = true;
+  // c->LoadNoTrees();
+  // c->hasSkimTree = true;
+  // c->hasEvtTree = true;
+  // c->hasAk3CaloJetTree = true;
   cout<<"consturcting cent, vz, pcoll, hbhe arrays... ";
   for(int i = 0 ; i < nentries ; ++i)
   {
+  break;
     c->GetEntry(i);
     if(i%1000==0) cout<<i<<"/"<<nentries<<endl;
     sigcentarray[i] = c->evt.hiBin;
@@ -217,12 +218,13 @@ void jettrkana(const char * infname = "/mnt/hadoop/cms/store/user/velicanu/merge
   cout<<"njet = "<<njet<<endl;
   bk = new HiForest(bkfname,"forest2",cPPb,0,whichjet);
   Long64_t nbkentries = bk->GetEntries();
-  bk->LoadNoTrees();
-  bk->hasEvtTree = true;
-  bk->hasSkimTree = true;
+  // bk->LoadNoTrees();
+  // bk->hasEvtTree = true;
+  // bk->hasSkimTree = true;
   // bk->hasTrackTree = true;
   for(int i = 0 ; i < nbkentries ; ++i)
   {
+  break;
 		if(i%10000==0) cout<<i<<"/"<<nbkentries<<endl;
     bk->GetEntry(i);
     bakcentarray[i]=bk->evt.hiBin;
@@ -252,19 +254,19 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   
   
   c->ResetBooleans();
-  int parallelization = 40;
-  // int parallelization = 1;
+  // int parallelization = 40;
+  int parallelization = 1;
   cout<<"whichjet: "<<whichjet<<endl;
   Long64_t nentries = c->GetEntries();
   if(mccommand==2)  dotrkcorr=0;
   TH2D::SetDefaultSumw2(true);
-  c->LoadNoTrees();
-  c->hasEvtTree = true;
+  // c->LoadNoTrees();
+  // c->hasEvtTree = true;
   // c->hasHltTree = true;
   // c->hasTrackTree = true;
   // c->hasAkPu3JetTree = true;
-  c->hasSkimTree = true;
-  c->hasAkVs3CaloJetTree = true;
+  // c->hasSkimTree = true;
+  // c->hasAk3CaloJetTree = true;
   
   hjeteta    = new TH1D(Form("hjet%d_eta_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#eta",80,-4,4);
   hjetphi    = new TH1D(Form("hjet%d_phi_trg%d_%d_ass%d_%d_nmin%d_nmax%d",jetindex,(int)leadingjetptlow,(int)leadingjetpthigh,(int)ptasslow,(int)ptasshigh,centmin,centmax),";#phi",80,-TMath::Pi(),TMath::Pi());
@@ -318,7 +320,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   // return hJetTrackSignal;
   
   double ntottrig = 0;
-  nentries = (int)vjetindices.size();
+  // nentries = (int)vjetindices.size();
   int increment = nentries/parallelization;
   int stopentry = (condor_iter+1)*increment;
   if(stopentry > nentries)
@@ -332,27 +334,29 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
   // myfile << std::setprecision(8)<< "Event Number,Jet pT,Jet phi,Jet eta,centrality,vz"<<endl;
 
   for (Long64_t jentry=condor_iter*increment; jentry<stopentry;jentry++) {
-    c->GetEntry(vjetindices[jentry]);
+    c->GetEntry(jentry);
+    if(jentry>10) break;
     if(jentry%1000==0) cout<<jentry<<"/"<<nentries<<endl;
-    long long int big = 1000000000;
-    long long int thisid = (big*c->evt.run) + c->evt.evt; // format is run|0|evt 
-    auto search = visitedevents.find(thisid);
-    if(search != visitedevents.end()) {
-      cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
-      continue; // found duplicate
-    }
-    else // no duplicate found, add this to visited events
-    {
-      visitedevents.insert(thisid);
-    }
+    // long long int big = 1000000000;
+    // long long int thisid = (big*c->evt.run) + c->evt.evt; // format is run|0|evt 
+    // auto search = visitedevents.find(thisid);
+    // if(search != visitedevents.end()) {
+      // cout<<"this data sample has duplicate events :( , but we're not analyzing them :) "<<endl;
+      // continue; // found duplicate
+    // }
+    // else // no duplicate found, add this to visited events
+    // {
+      // visitedevents.insert(thisid);
+    // }
 
-    if(rejectevent(centmin,centmax,vzrange,dijetdphicut,leadingjetpthigh,leadingjetptlow,subleadingjetpthigh,subleadingjetptlow,jetamax,jetamin,ajmin,ajmax)) continue;
+    // if(rejectevent(centmin,centmax,vzrange,dijetdphicut,leadingjetpthigh,leadingjetptlow,subleadingjetpthigh,subleadingjetptlow,jetamax,jetamin,ajmin,ajmax)) continue;
 
 
     // ### Find leading and subleading jets in |eta| < 2
     int leadindex = -1 , subleadindex = -1;
     bool foundleading = false;
     double oldjetpt = 999999999;
+    cout<<c->myjet.nref<<endl;
     for(int i = 0 ; i < c->myjet.nref ; ++i)
     {
       double deltajetpt = oldjetpt - c->myjet.jtpt[i];
@@ -376,7 +380,7 @@ TH2D * JetTrackSignal(int condor_iter, int jetindex, double leadingjetptlow , do
       }
     }
     if(leadindex < 0 || subleadindex < 0 ) continue; //Didn't find jet pair in |eta|<2
-    
+    cout<<"here"<<endl;
     // ### Set which jet to correlate with , 0 = leading , 1 = subleadings
     int dojet = -1;
     if(jetindex==0) dojet = leadindex;
@@ -470,12 +474,12 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   Long64_t nentries = c->GetEntries();
   Long64_t nbkentries = bk->GetEntries();
   TString csvname;
-  if(condor_iter<10)
-    csvname = Form("mixevents_0%d.csv",condor_iter);
-  else
-    csvname = Form("mixevents_%d.csv",condor_iter);
+  // if(condor_iter<10)
+    // csvname = Form("mixevents_0%d.csv",condor_iter);
+  // else
+    // csvname = Form("mixevents_%d.csv",condor_iter);
   std::vector< std::vector< long long int > > mixevents = csvtoarraylong(csvname.Data()); 
-  cout<<(int)mixevents.size()<<" x "<<(int)mixevents[0].size()<<endl;
+  // cout<<(int)mixevents.size()<<" x "<<(int)mixevents[0].size()<<endl;
   
 
   int parallelization = 40;
@@ -489,10 +493,10 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   // bk->hasTrackTree = true;
   c->hasEvtTree = true;
   c->hasSkimTree = true;
-  c->hasAkVs3CaloJetTree = true;
+  c->hasAk3CaloJetTree = true;
   bk->hasEvtTree = true;
   bk->hasSkimTree = true;
-  bk->hasAkVs3CaloJetTree = true;
+  bk->hasAk3CaloJetTree = true;
   bk->hasTrackTree = true;
 
   // bk->hasGenParticleTree = (bk->genParticleTree != 0);
@@ -534,7 +538,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
     exit(1);
   }
 
-  // return hJetTrackBackground;
+  return hJetTrackBackground;
   
   double ntottrig = 0;
   int n_entries_in_cent_range = cent_index_start[centmax] - cent_index_start[centmin];
@@ -560,7 +564,7 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
   // {
   //   pairs.push_back(std::unordered_set<long long int> tempset);
   // }
-  int nextindex = 0;
+  // int nextindex = 0;
   // for (int i = 0; i < (int)mixevents.size(); ++i)
   // {
   //   if(previndex!=mixevents[i][0])
@@ -579,19 +583,19 @@ TH2D * JetTrackBackground(int condor_iter, int jetindex, double leadingjetptlow 
     c->GetEntry(vjetindices[jentry]);
     // cout<<mixevents[nextindex][0]<<" "<<vjetindices[jentry]<<endl;
     std::unordered_set<long long int> tempset;
-    int tempindex = nextindex;
-    while(true)
-    {
-      if(tempindex == (int)mixevents.size()) break;
-      if(vjetindices[jentry]!=mixevents[tempindex][0])
-      {
-        nextindex = tempindex;
-        break;
-      }
+    // int tempindex = nextindex;
+    // while(true)
+    // {
+      // if(tempindex == (int)mixevents.size()) break;
+      // if(vjetindices[jentry]!=mixevents[tempindex][0])
+      // {
+      //   nextindex = tempindex;
+      //   break;
+      // }
       // cout<<"inserting: mixevents["<<tempindex<<"][1] = "<<mixevents[tempindex][1]<<endl;
-      tempset.insert(mixevents[tempindex][1]);
-      tempindex++;
-    }
+      // tempset.insert(mixevents[tempindex][1]);
+      // tempindex++;
+    // }
     // cout<<vjetindices[jentry]<<" "<<mixevents[tempindex-1][0]<<" "<<mixevents[tempindex-1][1]<<endl;
     // continue;
     if(rejectevent(centmin,centmax,vzrange,dijetdphicut,leadingjetpthigh,leadingjetptlow,subleadingjetpthigh,subleadingjetptlow,jetamax,jetamin,ajmin,ajmax)) continue;

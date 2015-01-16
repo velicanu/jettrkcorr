@@ -4,6 +4,7 @@ hadd.txt
 *_2014_09_*
 *.exe
 *.png
+*.csv
 hadoopunmerged
 *.root
 merged
