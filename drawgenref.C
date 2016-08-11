@@ -1,0 +1,112 @@
+{
+  
+  TFile *_file0 = TFile::Open("merged/genrefpp_276TeV_140_200_ak3PF_trkqaul-1_nmin-1_nmax-1_cmin0_cmax0_aj0_10_tptmin-1_tptmax-1_aptmin19_aptmax24.root");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_276TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefeta_pp_276TeV_140_200.png");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_276TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefphi_pp_276TeV_140_200.png");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.4);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitleOffset(1.2);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"X");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"Y");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_276TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefpt_pp_276TeV_140_200.png");
+
+
+
+  TFile *_file0 = TFile::Open("merged/genrefpPb_5TeV_140_200_ak3PF_trkqaul-1_nmin-1_nmax-1_cmin0_cmax0_aj0_10_tptmin-1_tptmax-1_aptmin19_aptmax24.root");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pPb_5TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefeta_pPb_5TeV_140_200.png");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pPb_5TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefphi_pPb_5TeV_140_200.png");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.4);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitleOffset(1.2);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"X");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"Y");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pPb_5TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefpt_pPb_5TeV_140_200.png");
+
+
+
+  TFile *_file0 = TFile::Open("merged/genrefpp_7TeV_140_200_ak3PF_trkqaul-1_nmin-1_nmax-1_cmin0_cmax0_aj0_10_tptmin-1_tptmax-1_aptmin19_aptmax24.root");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #eta");
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_eta_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_7TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefeta_pp_7TeV_140_200.png");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #phi");
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.2);
+  hgenref0_phi_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_7TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefphi_pp_7TeV_140_200.png");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitle("gen #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitle("ref #pt");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->CenterTitle();
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetYaxis()->SetTitleOffset(1.4);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->GetXaxis()->SetTitleOffset(1.2);
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"X");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->SetAxisRange(140,200,"Y");
+  hgenref0_pt_trg140_200_ass19_24_nmin0_nmax0->Draw("surf3");
+  TLatex * label = new TLatex(.03,.94,"pp_7TeV Jet p_{T} 140_200");
+  label->SetNDC(1);
+  label->Draw();
+  c1->SaveAs("genrefpt_pp_7TeV_140_200.png");
+
+}
